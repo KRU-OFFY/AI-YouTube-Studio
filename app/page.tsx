@@ -9,9 +9,10 @@ export default function HomePage() {
       <p style={{ color: "var(--muted)", marginTop: 0 }}>
         ระบบผลิตคอนเทนต์สำหรับช่อง <strong>ปุยฝัน (Puifun)</strong>
       </p>
-      <p>
-        เริ่มต้นที่{" "}
-        <Link href="/dashboard">แดชบอร์ด →</Link>
+      <p style={{ display: "flex", gap: 12 }}>
+        <Link href="/login">เข้าสู่ระบบ</Link>
+        <span style={{ color: "var(--muted)" }}>·</span>
+        <Link href="/signup">สมัครสมาชิก</Link>
       </p>
     </main>
   );

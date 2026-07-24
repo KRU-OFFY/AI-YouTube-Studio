@@ -35,7 +35,14 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
-- **Task 1.1 (Auth) — เสนอแผนแล้ว รออนุมัติก่อนลงมือ** (ทำ Inspect → Plan เสร็จ)
+- **Task 1.1 (Auth) — เขียนโค้ดเสร็จ + automated verify ผ่านครบ (24 ก.ค. 2026)**
+  - Supabase email auth (sign up / log in / log out) ด้วย server action
+  - middleware กันหน้า `/dashboard` + refresh session ฝั่ง server
+  - login error รวมเป็น "อีเมลหรือรหัสผ่านไม่ถูกต้อง" (กัน user enumeration)
+  - `lib/auth/validation.ts` + unit test 15 เคส (Vitest)
+  - ✅ รันจริงผ่าน: `lint` / `typecheck` / `test` (15/15) / `build` · ไม่มี secret ใน diff
+  - ⏳ **ค้าง E2E ฝั่งเจ้าของ:** ต้องมีโปรเจกต์ Supabase จริง + `.env.local` ถึงจะทดสอบ
+    สมัคร→ล็อกอิน→เห็นอีเมล→logout และ redirect ได้จริง (ผมทดสอบส่วนนี้แทนไม่ได้)
 
 ## ✅ ข้อตัดสินจากฝั่งวางแผน (ADR — ปิดคำถามค้างทั้ง 4 ข้อแล้ว)
 ดูฉบับเต็มที่ `docs/07-DECISIONS-sprint1.md`

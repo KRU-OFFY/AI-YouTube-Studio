@@ -1,6 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+type CookieToSet = { name: string; value: string; options: CookieOptions };
+
+// ใช้ใน Server Component / Server Action / Route Handler
 export function createSupabaseServerClient() {
   const cookieStore = cookies();
 
@@ -9,21 +12,17 @@ export function createSupabaseServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet: CookieToSet[]) {
           try {
-            cookieStore.set({ name, value, ...options });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options),
+            );
           } catch {
-            // called from a Server Component — safe to ignore
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: "", ...options });
-          } catch {
-            // called from a Server Component — safe to ignore
+            // เรียกจาก Server Component ที่ตั้งคุกกี้ไม่ได้ — ปล่อยผ่าน
+            // (middleware จะ refresh session ให้อยู่แล้ว)
           }
         },
       },
@@ -31,6 +30,7 @@ export function createSupabaseServerClient() {
   );
 }
 
+// ฝั่ง server เท่านั้น — ใช้ service role bypass RLS ห้ามหลุดถึง browser
 export function createSupabaseAdminClient() {
   const { createClient } = require("@supabase/supabase-js");
   return createClient(

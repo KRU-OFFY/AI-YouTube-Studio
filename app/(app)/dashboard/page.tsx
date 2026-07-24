@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logout } from "@/lib/auth/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +26,40 @@ async function checkSupabase(): Promise<ConnectionStatus> {
 }
 
 export default async function DashboardPage() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // ป้องกันซ้ำอีกชั้นนอกเหนือจาก middleware (defense in depth)
+  if (!user) redirect("/login");
+
   const status = await checkSupabase();
 
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
-      <h1>Dashboard</h1>
-      <p style={{ color: "var(--muted)" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 16,
+        }}
+      >
+        <div>
+          <h1 style={{ marginBottom: 4 }}>Dashboard</h1>
+          <p style={{ color: "var(--muted)", margin: 0 }}>
+            เข้าสู่ระบบในชื่อ <strong>{user.email}</strong>
+          </p>
+        </div>
+        <form action={logout}>
+          <button type="submit" className="auth-submit" style={{ width: "auto" }}>
+            ออกจากระบบ
+          </button>
+        </form>
+      </div>
+
+      <p style={{ color: "var(--muted)", marginTop: 16 }}>
         โปรเจกต์: <strong>TOFFY AI YouTube Studio</strong> · แบรนด์: ปุยฝัน (Puifun)
       </p>
 
@@ -57,8 +87,8 @@ export default async function DashboardPage() {
         <h2 style={{ marginBottom: 8 }}>ขั้นตอนถัดไป</h2>
         <ol>
           <li>สร้างโปรเจกต์ใน Supabase แล้วเอาค่าไปใส่ใน <code>.env.local</code></li>
-          <li>รัน migration ใน <code>supabase/migrations/</code></li>
-          <li>ทำหน้าจัดการ Episodes / Characters เป็นเฟสถัดไป</li>
+          <li>รัน migration ใน <code>supabase/migrations/</code> แล้วรัน <code>supabase/seed.sql</code></li>
+          <li>เดินหน้า Sprint 1: workspaces + RLS (Task 1.2)</li>
         </ol>
       </section>
     </main>
