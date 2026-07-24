@@ -3,7 +3,7 @@
 > **อ่านไฟล์นี้ก่อนเริ่มทำงานต่อทุกครั้ง** แล้วดำเนินการจากส่วน "ขั้นตอนถัดไป" ด้านล่าง
 > เมื่อคืบหน้า อย่าลืมอัปเดตวันที่ และย้ายงานที่เสร็จไปไว้ในส่วน "ทำเสร็จแล้ว"
 
-**อัปเดตล่าสุด:** 24 ก.ค. 2026 (รอบ 2 — เพิ่มเอกสาร Week 0 + seed.sql)
+**อัปเดตล่าสุด:** 24 ก.ค. 2026 (รอบ 3 — วางชุดเอกสารอ้างอิงครบ + รับ ADR Sprint 1 + CI เขียว)
 
 ---
 
@@ -35,22 +35,32 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
-- (เติมตรงนี้เมื่อเริ่มงานใหม่)
+- **Task 1.1 (Auth) — เสนอแผนแล้ว รออนุมัติก่อนลงมือ** (ทำ Inspect → Plan เสร็จ)
 
-## ⚠️ ต้องให้ฝั่งวางแผน (สมอง) ตัดสิน — ค้างอยู่
-1. **ช่องว่าง schema:** `05-SEED-DATA.md` มี **Workspace** และ **Channel** (+ Audience Profile) แต่ schema 0001 ยังไม่มีตารางรองรับ
-   → จะเพิ่มตาราง `workspaces` / `channels` ใน migration 0002 ไหม หรือถือเป็น config คงที่ตอนนี้?
-2. **`forbidden_words` + QC checklist** จะเก็บเป็นตาราง config ในระบบ หรือคงไว้เป็นไฟล์ docs ก่อน?
-3. **`docs/04-BUSINESS-CONTEXT.md`** ถูกอ้างถึงแต่ยังไม่ได้ส่งเข้ารีโป — ขอไฟล์จากฝั่งวางแผน
-4. ตั้งชื่อตาราง rights: scaffold ใช้ `rights_log` แต่ handoff พูดถึง `rights_records` — ยึดชื่อไหน?
+## ✅ ข้อตัดสินจากฝั่งวางแผน (ADR — ปิดคำถามค้างทั้ง 4 ข้อแล้ว)
+ดูฉบับเต็มที่ `docs/07-DECISIONS-sprint1.md`
+1. **ADR-001:** workspace/channel = **ตารางจริง + RLS** (ไม่ใช่ config) → Task 1.2 / 1.3
+2. **ADR-002:** `forbidden_words` = ตาราง config (channel-scoped) seed จาก docs/05 · QC checklist คง docs ไปก่อน (สร้างตาราง Sprint 6)
+3. **ADR-003:** ยึดชื่อ **`rights_records`** (ไม่ใช่ `rights_log`) → ต้องแก้ scaffold + กฎ naming อยู่ใน `AGENTS.md` แล้ว
+4. **ADR-004:** เบรก Episodes UI — จัดลำดับราก→ยอด; pillars/characters/episodes เป็น channel-scoped (FK → channels → workspaces)
 
-## ขั้นตอนถัดไป (ทำอันบนสุดก่อน)
-1. **จองแฮนเดิล YouTube `@puifun`** ก่อนโดนคนอื่นจอง — ด่วนสุด
-2. สร้างโปรเจกต์ Supabase จริง → เอาค่ามาใส่ `.env.local` → รัน migration 0001 → รัน `supabase/seed.sql`
-3. `npm install` แล้ว `npm run dev` ให้แน่ใจว่าหน้า `/dashboard` ขึ้นแถบเขียว
-4. ตอบ 4 คำถามในหัวข้อ "ต้องให้ฝั่งวางแผนตัดสิน" ด้านบน
-5. เฟสถัดไปของ TOFFY: หน้าจัดการ Episodes (list / create / edit) อ่านจากตาราง `episodes` ที่ seed ไว้แล้ว
-6. เริ่มผลิตเนื้อหาแบบแมนนวลคู่ขนานตั้งแต่ Week 1 (ไม่ต้องรอระบบเสร็จ)
+## 📌 หนี้ที่ต้องเคลียร์ก่อน/ระหว่าง Sprint 1
+- แก้ scaffold: เปลี่ยนตาราง `rights_log` → `rights_records` ใน migration 0001 (ADR-003) — จะทำตอนถึงจังหวะที่ไม่ชนกับ Task ที่รันอยู่
+- ปรับ `supabase/seed.sql`: เพิ่ม seed row workspace "Puifun Studio" + channel "ปุยฝัน" แล้วผูก FK ให้ pillars/characters/episodes เข้ากับ channel_id (หลัง Task 1.3)
+
+## ขั้นตอนถัดไป — Sprint 1 (ทำตามลำดับ ห้ามข้าม)
+1. **Task 1.1 — Auth (FR-001)** ← กำลังรออนุมัติแผน
+2. **Task 1.2 — workspaces + workspace_members + RLS (FR-002)**
+3. **Task 1.3 — channels (FK→workspace) + Gate 0 + RLS**
+4. **ปรับ seed** — workspace/channel เป็น seed row → pillars/characters/episodes ผูก FK
+5. **Task 1.4 — audit log (FR-013)**
+6. **Auditor** ตรวจจบ Sprint 1 (เปิด session ใหม่, เกณฑ์: Critical=0, High=0)
+7. **จากนั้น** ค่อยทำ Episodes UI
+
+## งานฝั่งเจ้าของ (ผมทำแทนไม่ได้ — ทำคู่ขนาน)
+- **จองแฮนเดิล YouTube `@puifun`** — ด่วนสุด
+- สร้างโปรเจกต์ Supabase จริง → ใส่ค่าใน `.env.local` (Task 1.1 ต้องใช้ตอนทดสอบ login จริง)
+- Track A: สร้าง anchor image น้องปุย/มุ่ย + generate เพลงธีม Pilot #1 (Suno) + จด Rights Log
 
 ## ข้อจำกัดที่ต้องเผื่อไว้เวลาวางแผน
 - Claude สร้างไฟล์ / รันโค้ดในแซนด์บ็อกซ์ / ค้นเว็บได้ แต่ **ติดตั้งซอฟต์แวร์บนเครื่องคุณไม่ได้, สมัครบัญชีบริการภายนอกแทนไม่ได้, และควบคุมเบราว์เซอร์แทนไม่ได้** — งานพวกนี้คุณต้องลงมือเอง

@@ -1,0 +1,4 @@
+asset_id,episode,asset_type,file_name_or_link,tool_used,plan_tier,prompt_used,seed_or_reference,export_date,commercial_rights_note,final_editor,human_edit_done,notes
+A-001,EP-001,music,theme-song-v3.mp3,Suno,Pro (paid),"gentle children's acoustic lullaby pop, ukulele, glockenspiel, Thai lyrics",,2026-07-25,"Paid tier - commercial use rights for newly generated songs",เจ้าของช่อง,yes,เพลงธีมแบรนด์ (ตัวอย่าง - ลบแถวนี้ได้)
+A-002,EP-001,character_image,nongpui-anchor-01.png,Leonardo.Ai,Free,"a small round fluffy white puff creature...",seed:12345,2026-07-25,,เจ้าของช่อง,yes,anchor image ห้ามลบ (ตัวอย่าง)
+A-003,EP-001,voice,narration-th.wav,ElevenLabs,Starter,,voice_id:xxxx,2026-07-26,,เจ้าของช่อง,yes,(ตัวอย่าง)

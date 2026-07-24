@@ -14,14 +14,23 @@
 - คอนเทนต์ประเภท **Made for Kids** — ต้องระวังเรื่อง COPPA / นโยบาย YouTube Kids
 - ตัวชี้วัดหลัก: rewatch rate + asset reuse ratio (สำคัญกว่า RPM)
 
-## เอกสารอ้างอิง (Source of Truth) — อ่านก่อนตัดสินใจเรื่องเนื้อหา
+## เอกสารอ้างอิง (Source of Truth) — อ่านตามลำดับก่อนตัดสินใจ
 1. `PROGRESS.md` — สถานะงาน / ขั้นตอนถัดไป (อ่านก่อนเสมอ)
-2. `docs/00-WEEK0-HANDOFF.md` — สรุปส่งมอบ Week 0 + งานที่เจ้าของต้องทำเอง
-3. `docs/05-SEED-DATA.md` — Workspace, Channel, Character Bible, Idea Backlog 10 ตอน, QC checklist, forbidden words
-4. `docs/06-NAME-CLEARANCE.md` — เหตุผลที่เลี่ยง "ปุยนุ่น" → ใช้ "ปุยฝัน"
-5. `docs/pilots/` — บทตอน Pilot (เพลงธีม / นิทาน) พร้อม prompt ผลิต
-6. `docs/04-BUSINESS-CONTEXT.md` — บริบทแบรนด์และข้อจำกัดทางธุรกิจ *(ยังไม่มีในรีโป — รอฝั่งวางแผนส่งมา)*
-7. `supabase/seed.sql` — seed ข้อมูลจริงชุดแรกเข้าตาราง (แปลงจาก `05-SEED-DATA.md`)
+2. `AGENTS.md` — กฎการทำงาน + กฎ naming ของตาราง (ADR)
+3. `docs/00-PROJECT-CONTEXT.md` — บริบทโปรเจกต์ภาพรวม
+4. `docs/02-SYSTEM-SPEC.md` — สเปกระบบ (FR / NFR / Permission Matrix)
+5. `docs/03-ARCHITECTURE-AND-DATA.md` — Data Model, Security, RLS
+6. `docs/01-SYSTEM-WORKFLOW.md` — เวิร์กโฟลว์ระบบ
+7. `plans/IMPLEMENTATION-ROADMAP.md` — โรดแมป (เน้น Phase 1)
+8. `docs/04-BUSINESS-CONTEXT.md` — บริบทแบรนด์และข้อจำกัดทางธุรกิจ
+9. `docs/05-SEED-DATA.md` — Workspace, Channel, Character Bible, Idea Backlog 10 ตอน, QC checklist, forbidden words
+10. `docs/06-NAME-CLEARANCE.md` — เหตุผลที่เลี่ยง "ปุยนุ่น" → ใช้ "ปุยฝัน"
+11. `docs/07-DECISIONS-sprint1.md` — บันทึกการตัดสินใจสถาปัตยกรรม (ADR สำหรับ Sprint 1)
+12. `docs/00-WEEK0-HANDOFF.md` — สรุปส่งมอบ Week 0 + งานที่เจ้าของต้องทำเอง
+13. `docs/pilots/` — บทตอน Pilot (เพลงธีม / นิทาน) พร้อม prompt ผลิต
+14. `prompts/PLAYBOOK-Sprint-1-Claude-Code.md` — ชุดคำสั่ง Sprint 1 (Task 1.1–1.4)
+15. `checklists/QUALITY-GATES.md` — เกณฑ์ผ่านแต่ละ gate
+16. `supabase/seed.sql` — seed ข้อมูลจริงชุดแรกเข้าตาราง (แปลงจาก `05-SEED-DATA.md`)
 
 ## Tech stack
 - Next.js (App Router) + TypeScript
@@ -58,3 +67,40 @@ npm run lint
 ## Branch convention
 - ทำงานบนบรานช์ที่แชตสั่ง (ตอนนี้: `claude/toffy-collaboration-system-wnnlpv`)
 - commit บ่อย ๆ ด้วยข้อความสั้นและอธิบาย "ทำไม" ไม่ใช่แค่ "อะไร"
+
+---
+
+# สำหรับรอบตรวจ (Auditor — Principal Architect / Security Reviewer)
+> ใช้เมื่อรัน Prompt Auditor ท้าย Sprint ในหน้าต่าง Claude แยก (คนละ session กับผู้พัฒนา)
+> รอบตรวจแรก **ห้ามแก้โค้ด** — ให้รายงาน finding แล้วบันทึกลง `audits/`
+
+## Architectural Invariants (ต้องไม่ถูกละเมิด)
+- Domain ไม่ผูกกับ Provider SDK · UI ไม่เข้าถึง Secret หรือ Provider โดยตรง
+- State Transition และ Approval Gate บังคับใช้ฝั่ง Server · Approval ผูกกับ Version เสมอ
+- Asset มี Provenance/Usage Note · Published Video ผูกกับ Version ของ Script/Render/Metadata ที่ใช้จริง
+- Generation/Render/Publish Job ต้อง Retry ได้อย่างปลอดภัยและ Idempotent
+- Audit Log ห้ามเก็บ Secret หรือ Raw Sensitive Payload · Policy Checklist ต้อง Versioned และ Configurable
+
+## Review Focus
+- **Requirements:** Requirement→Module→Data→API→Test, scope creep, missing acceptance, workflow-vs-impl conflict
+- **Architecture:** module boundary, coupling/circular dep, provider leakage, transaction boundary, SPOF, migration safety
+- **Content Pipeline:** invalid state, version/approval mismatch, asset provenance gap, QC bypass, publish without gate
+- **Security:** broken access control, workspace data leakage, secret exposure, unsafe upload, webhook verification, log redaction, rate limit/abuse
+- **Operations:** retry storm, duplicate generation/publish, stuck job, missing alert, backup/restore gap, cost runaway
+
+## รูปแบบ Finding
+ID · Title · Severity (Critical/High/Medium/Low) · Confidence · Evidence (file/line/function/test) · Scenario · Expected vs Actual · Impact · Root Cause · Recommendation · Test to Add · Rollback/Risk
+
+## Severity
+- **Critical:** ข้อมูล/Secret รั่ว, เผยแพร่ผิดช่อง/ผิดสิทธิ์, ข้อมูลสูญหาย, ระบบหลักใช้ไม่ได้
+- **High:** ข้าม Approval/QC, Version ผิด, Job ซ้ำสร้างค่าใช้จ่ายสูง, Publish ผิด Metadata
+- **Medium:** UX/Performance/Maintainability หรือ gap ที่ยังมี workaround
+- **Low:** Quality/Clarity/Technical Debt
+
+## Output
+บันทึกลง `audits/` + สรุป: Executive Summary · Architecture Map · Traceability Gap · Findings Table · Test Gap · Remediation Roadmap · **Go / Conditional Go / No-Go**
+
+## ห้ามในรอบตรวจ
+- ห้ามแก้โค้ดในรอบแรก · ห้าม Deploy/เปลี่ยน Production · ห้ามอ่าน/พิมพ์ค่า Secret
+- ห้ามเสนอ rewrite ทั้งระบบโดยไม่มีหลักฐาน · ห้ามรายงาน generic best practice ที่ไม่เชื่อมกับ repo จริง
+- ห้ามประกาศ Pass หากไม่ได้รันคำสั่ง build/test ที่มีจริง
