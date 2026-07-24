@@ -35,6 +35,15 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **Task 1.2 (workspaces + workspace_members + RLS) — เขียนโค้ดเสร็จ + verify ผ่านครบ (24 ก.ค. 2026)**
+  - migration `0002_workspaces.sql`: ตาราง workspaces / workspace_members (+ enum owner/editor/viewer)
+  - RLS เปิดทั้ง 2 ตาราง · helper `is_workspace_member`/`is_workspace_owner` (SECURITY DEFINER, search_path='')
+  - RPC `create_workspace` (SECURITY DEFINER) bootstrap owner แถวแรกแบบ atomic กันปัญหาไก่-ไข่
+  - ทุกฟังก์ชัน SECURITY DEFINER ตั้ง `search_path=''` + อ้างชื่อเต็ม (กัน search_path hijacking)
+  - UI: `/workspaces` (list + สร้าง), `/workspaces/[id]` (แก้ชื่อ + ดูสมาชิก) — RLS-scoped
+  - ✅ verify จริง: lint / typecheck / test 24/24 / build ผ่าน
+  - ✅ **RLS harness (Postgres จริง) ผ่าน:** user B ดึง/แก้/แทรก/เห็นสมาชิก ของ workspace user A ไม่ได้เลยที่ระดับ DB · owner ยังจัดการของตัวเองได้
+  - ⏳ **ค้าง E2E ฝั่งเจ้าของ:** สร้าง 2 บัญชีจริงบน Supabase ยืนยัน isolation ผ่านเบราว์เซอร์/REST
 - **Task 1.1 (Auth) — เขียนโค้ดเสร็จ + automated verify ผ่านครบ (24 ก.ค. 2026)**
   - Supabase email auth (sign up / log in / log out) ด้วย server action
   - middleware กันหน้า `/dashboard` + refresh session ฝั่ง server
@@ -56,9 +65,9 @@
 - ปรับ `supabase/seed.sql`: เพิ่ม seed row workspace "Puifun Studio" + channel "ปุยฝัน" แล้วผูก FK ให้ pillars/characters/episodes เข้ากับ channel_id (หลัง Task 1.3)
 
 ## ขั้นตอนถัดไป — Sprint 1 (ทำตามลำดับ ห้ามข้าม)
-1. **Task 1.1 — Auth (FR-001)** ← กำลังรออนุมัติแผน
-2. **Task 1.2 — workspaces + workspace_members + RLS (FR-002)**
-3. **Task 1.3 — channels (FK→workspace) + Gate 0 + RLS**
+1. ~~Task 1.1 — Auth~~ ✅ เสร็จ
+2. ~~Task 1.2 — workspaces + workspace_members + RLS~~ ✅ เสร็จ (FR-001 ตาม docs/02; Playbook พิมพ์เลข FR คลาด)
+3. **Task 1.3 — channels (FK→workspace) + Gate 0 + RLS** ← ถัดไป
 4. **ปรับ seed** — workspace/channel เป็น seed row → pillars/characters/episodes ผูก FK
 5. **Task 1.4 — audit log (FR-013)**
 6. **Auditor** ตรวจจบ Sprint 1 (เปิด session ใหม่, เกณฑ์: Critical=0, High=0)

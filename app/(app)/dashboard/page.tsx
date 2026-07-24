@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logout } from "@/lib/auth/actions";
@@ -88,7 +89,9 @@ export default async function DashboardPage() {
         <ol>
           <li>สร้างโปรเจกต์ใน Supabase แล้วเอาค่าไปใส่ใน <code>.env.local</code></li>
           <li>รัน migration ใน <code>supabase/migrations/</code> แล้วรัน <code>supabase/seed.sql</code></li>
-          <li>เดินหน้า Sprint 1: workspaces + RLS (Task 1.2)</li>
+          <li>
+            จัดการ <Link href="/workspaces">Workspaces</Link> (สร้าง / แก้ชื่อ / ดูสมาชิก)
+          </li>
         </ol>
       </section>
     </main>
