@@ -36,6 +36,15 @@ npm run dev
 - **แบบเร็ว:** copy เนื้อหาไฟล์ไปวางใน Supabase Dashboard → SQL Editor → Run
 - **แบบใช้ CLI:** `supabase link --project-ref <ref>` แล้ว `supabase db push`
 
+### Seed data (ข้อมูลจริงชุดแรก)
+
+หลังรัน migration แล้ว รัน `supabase/seed.sql` เพื่อใส่ข้อมูลตั้งต้น
+(3 content pillars, 4 ตัวละคร, 10 ตอนจาก idea backlog — ตอน #1/#2 มีบท) —
+แปลงมาจาก `docs/05-SEED-DATA.md` โดยตรง รันซ้ำได้ปลอดภัย (idempotent)
+
+- **แบบเร็ว:** วาง `supabase/seed.sql` ใน SQL Editor → Run
+- **แบบ CLI:** `supabase db reset` (รัน migrations + seed อัตโนมัติ)
+
 ## Project structure
 
 ```
@@ -46,8 +55,13 @@ lib/
   supabase/         Supabase client — แยกฝั่ง browser / server / admin
 supabase/
   migrations/       ไฟล์ SQL migration
+  seed.sql          ข้อมูลตั้งต้น (pillars / characters / episodes)
 docs/
-  QC-checklist.md   เช็กลิสต์ QC ก่อนอัปโหลดตอนใหม่
+  00-WEEK0-HANDOFF.md   สรุปส่งมอบ Week 0
+  05-SEED-DATA.md       ข้อมูลตั้งต้นฉบับเต็ม (source of truth)
+  06-NAME-CLEARANCE.md  ผลตรวจชื่อแบรนด์
+  pilots/               บทตอน Pilot + prompt ผลิต
+  QC-checklist.md       เช็กลิสต์ QC ก่อนอัปโหลดตอนใหม่
 CLAUDE.md           บริบทและกติกาให้ Claude Code
 PROGRESS.md         สถานะงาน / ขั้นตอนถัดไป
 ```

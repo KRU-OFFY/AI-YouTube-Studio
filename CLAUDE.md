@@ -10,6 +10,15 @@
 - คอนเทนต์ประเภท **Made for Kids** — ต้องระวังเรื่อง COPPA / นโยบาย YouTube Kids
 - ตัวชี้วัดหลัก: rewatch rate + asset reuse ratio (สำคัญกว่า RPM)
 
+## เอกสารอ้างอิง (Source of Truth) — อ่านก่อนตัดสินใจเรื่องเนื้อหา
+1. `PROGRESS.md` — สถานะงาน / ขั้นตอนถัดไป (อ่านก่อนเสมอ)
+2. `docs/00-WEEK0-HANDOFF.md` — สรุปส่งมอบ Week 0 + งานที่เจ้าของต้องทำเอง
+3. `docs/05-SEED-DATA.md` — Workspace, Channel, Character Bible, Idea Backlog 10 ตอน, QC checklist, forbidden words
+4. `docs/06-NAME-CLEARANCE.md` — เหตุผลที่เลี่ยง "ปุยนุ่น" → ใช้ "ปุยฝัน"
+5. `docs/pilots/` — บทตอน Pilot (เพลงธีม / นิทาน) พร้อม prompt ผลิต
+6. `docs/04-BUSINESS-CONTEXT.md` — บริบทแบรนด์และข้อจำกัดทางธุรกิจ *(ยังไม่มีในรีโป — รอฝั่งวางแผนส่งมา)*
+7. `supabase/seed.sql` — seed ข้อมูลจริงชุดแรกเข้าตาราง (แปลงจาก `05-SEED-DATA.md`)
+
 ## Tech stack
 - Next.js (App Router) + TypeScript
 - Supabase (Postgres + Auth + Storage)
