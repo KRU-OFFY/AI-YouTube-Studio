@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // เส้นทางที่ต้องล็อกอินก่อนถึงจะเข้าได้
-const PROTECTED_PREFIXES = ["/dashboard", "/workspaces"];
+const PROTECTED_PREFIXES = ["/dashboard", "/workspaces", "/channels"];
 // เส้นทางสำหรับผู้ที่ยังไม่ล็อกอิน (ถ้าล็อกอินแล้วเข้ามาจะเด้งไป dashboard)
 const AUTH_ROUTES = ["/login", "/signup"];
 

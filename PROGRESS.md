@@ -35,6 +35,18 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **Task 1.3 (channels + Gate 0 + RLS) — เขียนโค้ดเสร็จ + verify ผ่านครบ (25 ก.ค. 2026)**
+  - migration `0003_channels.sql`: ตาราง channels (+enum draft/approved) + forbidden_words (ADR-002)
+    + เพิ่ม channel_id ให้ pillars/characters/episodes (channel-scoped unique)
+  - rename `content_pillars→pillars` (AGENTS ข้อ 13) + `rights_log→rights_records` (ADR-003)
+  - **Gate 0**: BEFORE INSERT trigger บน episodes — channel ยัง draft สร้าง episode ไม่ได้ (บังคับที่ DB ทุกเส้นทาง)
+  - helper `can_access_channel`/`has_channel_write` (SECURITY DEFINER, search_path='') → RLS สืบทอด scope ผ่าน channel→workspace
+  - RPC `approve_channel` (owner-only) + `seed_puifun()` (idempotent: workspace+channel+pillars/characters/episodes/forbidden_words)
+  - migration `0004`: channel_id ของ content SET NOT NULL (หลัง seed backfill — ปลายทางไม่ปล่อย nullable)
+  - UI: workspace page ลิสต์+สร้าง channel, `/channels/[id]` มีปุ่มอนุมัติ (Gate 0)
+  - ✅ verify จริง: lint / typecheck / test 37/37 / build ผ่าน
+  - ✅ **SQL harness (Postgres จริง) ผ่าน:** Gate 0 (draft→สร้างไม่ได้ / approved→ได้) · B เข้าถึง channel/episodes ของ A ไม่ได้ · channel_id NOT NULL · seed_puifun idempotent
+  - ⏳ **ค้าง E2E ฝั่งเจ้าของ:** รัน migration + `select seed_puifun()` (ล็อกอิน) บน Supabase จริง แล้วทดสอบ 2 บัญชี
 - **Task 1.2 (workspaces + workspace_members + RLS) — เขียนโค้ดเสร็จ + verify ผ่านครบ (24 ก.ค. 2026)**
   - migration `0002_workspaces.sql`: ตาราง workspaces / workspace_members (+ enum owner/editor/viewer)
   - RLS เปิดทั้ง 2 ตาราง · helper `is_workspace_member`/`is_workspace_owner` (SECURITY DEFINER, search_path='')
@@ -60,14 +72,16 @@
 3. **ADR-003:** ยึดชื่อ **`rights_records`** (ไม่ใช่ `rights_log`) → ต้องแก้ scaffold + กฎ naming อยู่ใน `AGENTS.md` แล้ว
 4. **ADR-004:** เบรก Episodes UI — จัดลำดับราก→ยอด; pillars/characters/episodes เป็น channel-scoped (FK → channels → workspaces)
 
-## 📌 หนี้ที่ต้องเคลียร์ก่อน/ระหว่าง Sprint 1
-- แก้ scaffold: เปลี่ยนตาราง `rights_log` → `rights_records` ใน migration 0001 (ADR-003) — จะทำตอนถึงจังหวะที่ไม่ชนกับ Task ที่รันอยู่
-- ปรับ `supabase/seed.sql`: เพิ่ม seed row workspace "Puifun Studio" + channel "ปุยฝัน" แล้วผูก FK ให้ pillars/characters/episodes เข้ากับ channel_id (หลัง Task 1.3)
+## 📌 หนี้ที่เคลียร์แล้วใน Task 1.3
+- ✅ rename `rights_log` → `rights_records` (ADR-003) + `content_pillars` → `pillars` (AGENTS ข้อ 13)
+- ✅ seed ผูก channel-scoped ผ่าน RPC `seed_puifun()` (workspace "Puifun Studio" + channel "ปุยฝัน")
+- ⏳ ยังเหลือ: ออกแบบ RLS policy ของ `assets` / `rights_records` (ตอนนี้ล็อก deny-all ไว้ก่อน)
 
 ## ขั้นตอนถัดไป — Sprint 1 (ทำตามลำดับ ห้ามข้าม)
 1. ~~Task 1.1 — Auth~~ ✅ เสร็จ
 2. ~~Task 1.2 — workspaces + workspace_members + RLS~~ ✅ เสร็จ (FR-001 ตาม docs/02; Playbook พิมพ์เลข FR คลาด)
-3. **Task 1.3 — channels (FK→workspace) + Gate 0 + RLS** ← ถัดไป
+3. ~~Task 1.3 — channels + Gate 0 + RLS + ผูก seed channel-scoped~~ ✅ เสร็จ
+4. **Task 1.4 — audit log (FR-013)** ← ถัดไป
 4. **ปรับ seed** — workspace/channel เป็น seed row → pillars/characters/episodes ผูก FK
 5. **Task 1.4 — audit log (FR-013)**
 6. **Auditor** ตรวจจบ Sprint 1 (เปิด session ใหม่, เกณฑ์: Critical=0, High=0)

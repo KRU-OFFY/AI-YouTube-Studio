@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { RenameWorkspaceForm } from "@/components/WorkspaceForms";
+import { CreateChannelForm } from "@/components/ChannelForms";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,18 @@ export default async function WorkspaceDetailPage({
   const myMembership = members.find((m) => m.user_id === user.id);
   const isOwner = myMembership?.role === "owner";
 
+  const { data: channelRows } = await supabase
+    .from("channels")
+    .select("id, name, slug, status")
+    .eq("workspace_id", workspace.id)
+    .order("created_at", { ascending: true });
+  const channels = (channelRows ?? []) as {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  }[];
+
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
       <p style={{ marginBottom: 24 }}>
@@ -69,6 +82,34 @@ export default async function WorkspaceDetailPage({
             </li>
           ))}
         </ul>
+      </section>
+
+      <section style={{ marginTop: 32 }}>
+        <h2 style={{ marginBottom: 8 }}>Channels ({channels.length})</h2>
+        {channels.length === 0 && (
+          <p style={{ color: "var(--muted)" }}>ยังไม่มี channel</p>
+        )}
+        <ul style={{ paddingLeft: 18 }}>
+          {channels.map((c) => (
+            <li key={c.id} style={{ marginBottom: 6 }}>
+              <Link href={`/channels/${c.id}`}>{c.name}</Link>{" "}
+              <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                · /{c.slug} ·{" "}
+                <span style={{ color: c.status === "approved" ? "var(--ok)" : "var(--warn)" }}>
+                  {c.status === "approved" ? "อนุมัติแล้ว" : "ร่าง (draft)"}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {isOwner ? (
+          <div style={{ marginTop: 16 }}>
+            <h3 style={{ marginBottom: 8, fontSize: 15 }}>สร้าง channel ใหม่</h3>
+            <CreateChannelForm workspaceId={workspace.id} />
+          </div>
+        ) : (
+          <p style={{ color: "var(--muted)" }}>เฉพาะ owner สร้าง channel ได้</p>
+        )}
       </section>
 
       <section style={{ marginTop: 32 }}>

@@ -16,7 +16,7 @@ async function checkSupabase(): Promise<ConnectionStatus> {
   if (!url || !key) return { state: "missing-env" };
   try {
     const supabase = createSupabaseServerClient();
-    const { error } = await supabase.from("content_pillars").select("id").limit(1);
+    const { error } = await supabase.from("pillars").select("id").limit(1);
     if (error && !/relation .* does not exist/i.test(error.message)) {
       return { state: "error", message: error.message };
     }
