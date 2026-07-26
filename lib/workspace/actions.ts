@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit/log";
 import {
   validateWorkspaceName,
   normalizeTimezone,
@@ -41,6 +42,14 @@ export async function createWorkspace(
   const ws = (Array.isArray(data) ? data[0] : data) as WorkspaceRow | null;
   if (!ws?.id) return { error: "สร้าง workspace ไม่สำเร็จ" };
 
+  await logAudit(supabase, {
+    action: "workspace.create",
+    entityType: "workspace",
+    entityId: ws.id,
+    workspaceId: ws.id,
+    metadata: { name: ws.name },
+  });
+
   redirect(`/workspaces/${ws.id}`);
 }
 
@@ -67,6 +76,14 @@ export async function renameWorkspace(
   if (error) return { error: error.message };
   // ถ้าไม่ใช่ owner RLS จะกรองจนไม่มีแถวถูกแก้ (data = null)
   if (!data) return { error: "คุณไม่มีสิทธิ์แก้ workspace นี้ (ต้องเป็น owner)" };
+
+  await logAudit(supabase, {
+    action: "workspace.update",
+    entityType: "workspace",
+    entityId: id,
+    workspaceId: id,
+    metadata: { name: name.trim() },
+  });
 
   revalidatePath(`/workspaces/${id}`);
   return { error: null, message: "บันทึกชื่อใหม่แล้ว" };

@@ -167,6 +167,8 @@ create policy members_delete on workspace_members
 grant usage on schema public to authenticated;
 grant select, update, delete on workspaces to authenticated;
 grant select, insert, update, delete on workspace_members to authenticated;
+-- write RPC: revoke default PUBLIC execute ก่อน (กัน anon เรียกสร้าง workspace)
+revoke execute on function public.create_workspace(text, text, text) from public;
 grant execute on function public.create_workspace(text, text, text) to authenticated;
 grant execute on function public.is_workspace_member(uuid) to authenticated;
 grant execute on function public.is_workspace_owner(uuid) to authenticated;

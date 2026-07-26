@@ -59,6 +59,20 @@ export default async function WorkspaceDetailPage({
     status: string;
   }[];
 
+  const { data: auditRows } = await supabase
+    .from("audit_logs")
+    .select("id, action, result, actor_user_id, created_at")
+    .eq("workspace_id", workspace.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const auditLogs = (auditRows ?? []) as {
+    id: string;
+    action: string;
+    result: string;
+    actor_user_id: string | null;
+    created_at: string;
+  }[];
+
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
       <p style={{ marginBottom: 24 }}>
@@ -120,6 +134,30 @@ export default async function WorkspaceDetailPage({
           <p style={{ color: "var(--muted)" }}>
             เฉพาะ owner แก้ชื่อได้ (สิทธิ์ของคุณคือ {myMembership?.role ?? "-"})
           </p>
+        )}
+      </section>
+
+      <section style={{ marginTop: 32 }}>
+        <h2 style={{ marginBottom: 8 }}>Audit log ล่าสุด ({auditLogs.length})</h2>
+        {auditLogs.length === 0 ? (
+          <p style={{ color: "var(--muted)" }}>ยังไม่มีบันทึก</p>
+        ) : (
+          <ul style={{ paddingLeft: 18, fontSize: 14 }}>
+            {auditLogs.map((a) => (
+              <li key={a.id} style={{ marginBottom: 4 }}>
+                <code>{a.action}</code>{" "}
+                <span style={{ color: a.result === "success" ? "var(--ok)" : "var(--err)" }}>
+                  {a.result}
+                </span>
+                <span style={{ color: "var(--muted)" }}>
+                  {" · "}
+                  {new Date(a.created_at).toLocaleString("th-TH", {
+                    timeZone: "Asia/Bangkok",
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
     </main>

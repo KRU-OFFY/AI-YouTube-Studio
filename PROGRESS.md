@@ -35,6 +35,18 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **Task 1.4 (audit log, FR-013) — เขียนโค้ดเสร็จ + verify ผ่านครบ (25 ก.ค. 2026)**
+  - migration `0005_audit_logs.sql`: ตาราง audit_logs (append-only) + RPC `log_audit` (actor=auth.uid())
+  - **Append-only 2 ชั้น:** ไม่มี policy/grant UPDATE/DELETE + trigger BEFORE UPDATE/DELETE → RAISE
+  - **เขียนผ่าน RPC/server เท่านั้น:** ไม่มี INSERT policy client · **revoke EXECUTE จาก PUBLIC** (กัน anon เขียน) — และทำกับ write RPC เดิม (create_workspace/approve_channel/seed_puifun) ด้วย
+  - **ไม่เก็บ secret/PII:** `sanitizeMetadata()` ตัด password/token/secret/key + **mask email** (+ unit test)
+  - login-failure บันทึกฝั่ง server ด้วย service-role (แนว A′) actor=null — ไม่ grant anon
+  - logAudit best-effort (ไม่ทำ action หลักพัง) แต่ยิง error เข้า console
+  - hook logging: workspace.create/update · channel.create/approve · auth.login(success/failure)/logout/signup
+  - UI: audit log ล่าสุดในหน้า `/workspaces/[id]`
+  - ✅ verify จริง: lint / typecheck / test 43/43 / build ผ่าน
+  - ✅ **SQL harness (Postgres จริง) ผ่าน:** append-only (update/delete→raise) · client insert ตรงไม่ได้ · actor ปลอมไม่ได้ · B เห็น audit ของ A ไม่ได้ · anon SELECT=0 + anon เขียนไม่ได้
+  - ➕ เพิ่มกฎถาวร **Security & Audit** ใน CLAUDE.md
 - **Task 1.3 (channels + Gate 0 + RLS) — เขียนโค้ดเสร็จ + verify ผ่านครบ (25 ก.ค. 2026)**
   - migration `0003_channels.sql`: ตาราง channels (+enum draft/approved) + forbidden_words (ADR-002)
     + เพิ่ม channel_id ให้ pillars/characters/episodes (channel-scoped unique)
@@ -81,7 +93,9 @@
 1. ~~Task 1.1 — Auth~~ ✅ เสร็จ
 2. ~~Task 1.2 — workspaces + workspace_members + RLS~~ ✅ เสร็จ (FR-001 ตาม docs/02; Playbook พิมพ์เลข FR คลาด)
 3. ~~Task 1.3 — channels + Gate 0 + RLS + ผูก seed channel-scoped~~ ✅ เสร็จ
-4. **Task 1.4 — audit log (FR-013)** ← ถัดไป
+4. ~~Task 1.4 — audit log (FR-013)~~ ✅ เสร็จ
+5. **Auditor ตรวจจบ Sprint 1** (เปิด session ใหม่ · เกณฑ์: Critical=0, High=0) ← ถัดไป
+6. จากนั้น Episodes UI (เฟสถัดไป)
 4. **ปรับ seed** — workspace/channel เป็น seed row → pillars/characters/episodes ผูก FK
 5. **Task 1.4 — audit log (FR-013)**
 6. **Auditor** ตรวจจบ Sprint 1 (เปิด session ใหม่, เกณฑ์: Critical=0, High=0)

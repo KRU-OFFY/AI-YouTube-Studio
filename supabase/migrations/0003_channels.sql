@@ -182,6 +182,8 @@ create policy episodes_write on episodes for all to authenticated
 grant select, insert, update, delete on channels, forbidden_words, pillars, characters, episodes to authenticated;
 grant execute on function public.can_access_channel(uuid) to authenticated;
 grant execute on function public.has_channel_write(uuid) to authenticated;
+-- write RPC: revoke default PUBLIC execute ก่อน (กัน anon อนุมัติ channel)
+revoke execute on function public.approve_channel(uuid) from public;
 grant execute on function public.approve_channel(uuid) to authenticated;
 
 -- ── RPC seed_puifun(): owner ที่ล็อกอินเรียกครั้งเดียว (idempotent) ───
@@ -277,4 +279,5 @@ begin
   return v_ch;
 end $$;
 
+revoke execute on function public.seed_puifun() from public;
 grant execute on function public.seed_puifun() to authenticated;

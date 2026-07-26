@@ -10,6 +10,16 @@
   - ไวยากรณ์คำสั่ง git / npm / SQL
   - trailer ที่ระบบบังคับท้าย commit (เช่น `Co-Authored-By:`)
 
+## Security & Audit — กฎถาวร (ยึดทุก Task ที่เกี่ยวกับ log / auth / RLS)
+- **APPEND-ONLY จริงที่ DB เสมอ:** ไม่ grant UPDATE/DELETE ให้ client + trigger `BEFORE UPDATE/DELETE → RAISE`
+- **เขียน audit ผ่าน RPC/server เท่านั้น:** ไม่มี INSERT policy ตรงให้ client; actor ตั้งจาก `auth.uid()`/server ห้ามให้ caller ส่ง actor เอง
+- **ห้าม grant anon EXECUTE บน RPC เขียนข้อมูล แบบไม่มี guard + ไม่มี rate-limit** — และจำไว้ว่า Postgres grant EXECUTE ให้ `PUBLIC` โดย default → ต้อง `revoke execute ... from public` ก่อน grant ให้ role ที่ตั้งใจ ถ้าจำเป็น (เช่น login-failure) ต้องใส่ guard ใน RPC จำกัด action/result/ขอบเขต เมื่อ `auth.uid() IS NULL`
+- **ห้ามเก็บ secret/PII ใน log:** sanitize ตัด `password/token/secret/key` + mask/hash email และ identifier อ่อนไหว (NFR-009)
+- **RPC ต้อง `SECURITY DEFINER` + `search_path=''` เสมอ** และอ้างชื่อเต็ม (`public.*`, `auth.*`)
+- **Logging เป็น best-effort** (ไม่ทำ action หลักพัง) แต่ error ต้องเข้า monitoring/console ห้ามเงียบ
+- **ทุก migration ที่แตะ RLS ต้องมี test ครอบ:** cross-workspace มองไม่เห็น + `anon SELECT = 0 แถว`
+- **VERIFY ต้องรันจริงก่อนสรุป** (`lint`/`typecheck`/`test`/`build` + SQL harness) + `git diff` เช็ก secret
+
 ## บล็อกสรุปส่งฝั่งวางแผน (handoff block)
 - หลังจบงานหรือรายงานสถานะที่เจ้าของต้องเอาไปวางในแชต "ฝั่งวางแผน" ให้สรุปเป็น **กล่องโค้ดเดียว** (คัดลอกง่ายในคลิกเดียว)
 - **หัวข้อ / label เป็นภาษาอังกฤษ** (เช่น `Scope`, `Verify`, `Blocked`, `Status`, `Next`) แต่ **เนื้อหาเป็นภาษาไทย**

@@ -12,12 +12,19 @@ returns uuid
 language sql
 stable
 as $$
-  select nullif(current_setting('request.jwt.claims', true)::json ->> 'sub', '')::uuid;
+  -- ทน claims ว่าง/ไม่ตั้งค่า (คืน null) เหมือนพฤติกรรม Supabase จริง
+  select nullif(
+    nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub', ''
+  )::uuid;
 $$;
 
 do $$ begin
   create role authenticated nologin;
 exception when duplicate_object then null; end $$;
+do $$ begin
+  create role anon nologin;
+exception when duplicate_object then null; end $$;
 
-grant usage on schema auth to authenticated;
-grant execute on function auth.uid() to authenticated;
+grant usage on schema auth to authenticated, anon;
+grant execute on function auth.uid() to authenticated, anon;
+grant usage on schema public to anon;

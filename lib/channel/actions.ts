@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit/log";
 import { validateChannelName, validateSlug } from "@/lib/channel/validation";
 
 export type ChannelState = {
@@ -39,6 +40,14 @@ export async function createChannel(
   }
   if (!data) return { error: "คุณไม่มีสิทธิ์สร้าง channel (ต้องเป็น owner)" };
 
+  await logAudit(supabase, {
+    action: "channel.create",
+    entityType: "channel",
+    entityId: data.id,
+    workspaceId,
+    metadata: { name: name.trim(), slug: slug.trim() },
+  });
+
   redirect(`/channels/${data.id}`);
 }
 
@@ -47,7 +56,18 @@ export async function approveChannel(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = createSupabaseServerClient();
-  await supabase.rpc("approve_channel", { p_id: id });
+  const { data } = await supabase.rpc("approve_channel", { p_id: id });
+  const ch = (Array.isArray(data) ? data[0] : data) as
+    | { id?: string; workspace_id?: string }
+    | null;
+  if (ch?.id) {
+    await logAudit(supabase, {
+      action: "channel.approve",
+      entityType: "channel",
+      entityId: ch.id,
+      workspaceId: ch.workspace_id ?? null,
+    });
+  }
   revalidatePath(`/channels/${id}`);
 }
 
