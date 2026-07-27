@@ -1,5 +1,5 @@
 -- RLS + append-only harness — Task 1.4 (audit_logs)
--- ต้องรันตามลำดับ: _supabase_shim.sql → 0001 → 0002 → 0003 → 0004 → 0005 → ไฟล์นี้
+-- ต้องรันตามลำดับ: _supabase_shim.sql → 0001 → 0002 → 0003 → 0004 → 0005 → 0006 → 0007 → ไฟล์นี้
 -- พิสูจน์: (ก) append-only (update/delete → raise)  (ข) client insert ตรงไม่ได้ (ต้องผ่าน RPC)
 --          (ค) actor ปลอมไม่ได้ (= auth.uid())  (ง) B เห็น audit ของ A ไม่ได้
 --          (จ) anon SELECT = 0 แถว + anon เขียน (log_audit) ไม่ได้
@@ -38,6 +38,31 @@ begin
   exception when insufficient_privilege then denied := true;
   end;
   if not denied then raise exception 'FAIL: client insert ตรงเข้า audit_logs ได้ (ควรผ่าน RPC เท่านั้น)'; end if;
+end $$;
+
+-- [M2] sanitize ที่ระดับ DB — เรียก log_audit "ตรง" (ข้าม TS wrapper) ด้วย metadata อ่อนไหว
+select public.log_audit('test.m2', 'x', null, current_setting('test.ws_a')::uuid, 'success',
+  '{"password":"x","token":"y","signing_key":"z","session_id":"s","email":"victim@example.com","name":"ok","nested":{"secret":"deep","keep":"v"}}');
+do $$
+declare m jsonb;
+begin
+  select metadata into m from public.audit_logs where action = 'test.m2' limit 1;
+  if m ? 'password' or m ? 'token' or m ? 'signing_key' or m ? 'session_id' then
+    raise exception 'FAIL: M2 metadata ยังมี key อ่อนไหว: %', m;
+  end if;
+  if (m->>'email') is distinct from 'v***@example.com' then
+    raise exception 'FAIL: M2 email ไม่ถูก mask: %', m->>'email';
+  end if;
+  if (m->>'name') is distinct from 'ok' then
+    raise exception 'FAIL: M2 key ปกติ (name) หาย: %', m;
+  end if;
+  -- recurse: nested.secret ต้องหลุด, nested.keep ต้องอยู่
+  if (m->'nested') ? 'secret' then
+    raise exception 'FAIL: M2 nested secret ไม่ถูกตัด: %', m->'nested';
+  end if;
+  if (m->'nested'->>'keep') is distinct from 'v' then
+    raise exception 'FAIL: M2 nested keep หาย: %', m->'nested';
+  end if;
 end $$;
 
 -- ═══ B: เห็น audit ของ A ไม่ได้ ═══
