@@ -1,0 +1,21 @@
+-- TOFFY AI YouTube Studio — seed data (Puifun)
+-- ที่มา: docs/05-SEED-DATA.md + docs/pilots/*
+--
+-- ⚠️ ตั้งแต่ Task 1.3 ข้อมูล content เป็น "channel-scoped" และผูกกับเจ้าของ (RLS)
+-- จึง seed ผ่าน RPC `seed_puifun()` แทน flat insert แบบเดิม (ไม่งั้นจะได้แถวไร้เจ้าของ
+-- ที่หลุด RLS และทำให้ migration 0004 SET NOT NULL ไม่ผ่าน)
+--
+-- วิธี seed (รันในฐานะ "เจ้าของที่ล็อกอินแล้ว" เพื่อให้ auth.uid() มีค่า):
+--   1) สมัคร/ล็อกอินผ่านแอปด้วยบัญชีที่จะเป็น owner
+--   2) เรียก RPC ครั้งเดียว (idempotent):
+--        select public.seed_puifun();
+--      - ผ่านแอป: supabase.rpc('seed_puifun')
+--      - หรือ Supabase SQL Editor ที่รันในบริบท JWT ของผู้ใช้
+--
+-- RPC จะสร้าง: workspace "Puifun Studio" + channel "ปุยฝัน" (approved)
+--   + pillars (3) + characters (4) + episodes (10) + forbidden_words (11)
+--   โดยผูก channel_id ให้ครบ และรันซ้ำได้ปลอดภัย
+--
+-- นิยาม seed_puifun() อยู่ใน supabase/migrations/0003_channels.sql
+
+-- (ไฟล์นี้ไม่ทำ insert ใด ๆ โดยตั้งใจ)
