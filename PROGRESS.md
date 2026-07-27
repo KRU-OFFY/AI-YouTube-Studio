@@ -35,6 +35,12 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **Sprint 1 hardening — แก้ finding จาก Audit (25 ก.ค. 2026)**
+  - **H1 (High) แก้แล้ว:** migration `0006` ตัด FK ของ `audit_logs.workspace_id`/`actor_user_id` → ลบ workspace/user ได้ + audit row คงเป็นประวัติ (ยืนยันด้วย harness)
+  - **M1 แก้แล้ว:** trigger `channels_status_guard` กันเปลี่ยน `channels.status` นอก `approve_channel` (บังคับผ่าน RPC + audit)
+  - **M4 แก้แล้ว:** CI เพิ่ม `lint` + `test` และ job `db-harness` (Postgres service) รัน SQL harness ทุก push
+  - ✅ verify: lint/typecheck/test 43/build + harness (workspaces/channels+M1/audit+H1-delete) ผ่านบน Postgres จริง
+  - ⏳ รอ sub-agent re-audit ยืนยัน High=0
 - **Task 1.4 (audit log, FR-013) — เขียนโค้ดเสร็จ + verify ผ่านครบ (25 ก.ค. 2026)**
   - migration `0005_audit_logs.sql`: ตาราง audit_logs (append-only) + RPC `log_audit` (actor=auth.uid())
   - **Append-only 2 ชั้น:** ไม่มี policy/grant UPDATE/DELETE + trigger BEFORE UPDATE/DELETE → RAISE

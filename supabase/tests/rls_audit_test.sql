@@ -85,6 +85,23 @@ begin
   if not blocked then raise exception 'FAIL: DELETE audit_logs ได้ (ควร append-only)'; end if;
 end $$;
 
+-- ═══ [H1] ลบ workspace ที่มี audit log ต้องสำเร็จ + audit row คงอยู่ (id เป็นประวัติ) ═══
+set role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-1111-1111-111111111111"}',false);
+do $$
+declare ws uuid := current_setting('test.ws_a')::uuid;
+begin
+  delete from public.workspaces where id = ws;   -- owner delete; ต้องไม่ถูก append-only trigger บล็อกผ่าน cascade
+end $$;
+reset role;
+do $$
+declare n int;
+begin
+  -- อ่านตรงด้วย superuser (ข้าม RLS) — audit row ของ workspace.create ต้องยังอยู่
+  select count(*) into n from public.audit_logs where action = 'workspace.create';
+  if n < 1 then raise exception 'FAIL: audit row หายหลังลบ workspace (ควรคงเป็นประวัติ)'; end if;
+end $$;
+
 \echo '========================================='
-\echo 'AUDIT RLS + APPEND-ONLY HARNESS PASSED'
+\echo 'AUDIT RLS + APPEND-ONLY + H1 DELETE HARNESS PASSED'
 \echo '========================================='

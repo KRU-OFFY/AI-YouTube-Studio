@@ -44,7 +44,20 @@ begin
   if not blocked then raise exception 'FAIL: Gate 0 ไม่กัน — สร้าง episode ใน channel draft ได้'; end if;
 end $$;
 
--- อนุมัติ channel → สร้าง episode ได้
+-- [M1] เปลี่ยน status ผ่าน UPDATE ตรง → ต้องถูกกัน (บังคับผ่าน approve_channel)
+do $$
+declare ch uuid := current_setting('test.ch_a')::uuid; blocked boolean := false;
+begin
+  begin
+    update public.channels set status = 'approved' where id = ch;
+  exception when raise_exception then blocked := true;
+  end;
+  if not blocked then
+    raise exception 'FAIL: เปลี่ยน channel.status ผ่าน UPDATE ตรงได้ (ต้องผ่าน approve_channel เท่านั้น)';
+  end if;
+end $$;
+
+-- อนุมัติ channel ผ่าน RPC → สร้าง episode ได้
 select public.approve_channel(current_setting('test.ch_a')::uuid);
 do $$
 declare ch uuid := current_setting('test.ch_a')::uuid; n int;

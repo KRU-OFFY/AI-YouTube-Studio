@@ -1,8 +1,9 @@
 version: 2.1
 
-# CI สำหรับ TOFFY AI YouTube Studio (Next.js + TypeScript)
-# ตรวจ 3 ขั้น: ติดตั้ง deps → typecheck → build
-# ไม่ต้องใช้ค่า secret ใด ๆ (หน้า dashboard เป็น dynamic เรียก Supabase ตอน runtime เท่านั้น)
+# CI สำหรับ TOFFY AI YouTube Studio (Next.js + TypeScript + Supabase)
+# build-and-check: lint → typecheck → test → build
+# db-harness: รัน migration + RLS/Gate0/append-only harness บน Postgres จริง (กัน security regress)
+# ไม่ต้องใช้ค่า secret ใด ๆ
 
 jobs:
   build-and-check:
@@ -22,13 +23,59 @@ jobs:
           paths:
             - ~/.npm
       - run:
+          name: Lint
+          command: npm run lint
+      - run:
           name: Type check
           command: npm run typecheck
       - run:
+          name: Unit tests (vitest)
+          command: npm run test
+      - run:
           name: Production build
           command: npm run build
+
+  db-harness:
+    docker:
+      - image: cimg/base:current
+      - image: cimg/postgres:16.6
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: toffy
+          POSTGRES_HOST_AUTH_METHOD: trust
+    environment:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGDATABASE: toffy
+    steps:
+      - checkout
+      - run:
+          name: Install psql client
+          command: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run:
+          name: Wait for Postgres
+          command: for i in $(seq 1 30); do pg_isready -h localhost -p 5432 && exit 0; sleep 1; done; echo "postgres not ready"; exit 1
+      - run:
+          name: Apply Supabase shim + migrations
+          command: |
+            set -e
+            psql -v ON_ERROR_STOP=1 -f supabase/tests/_supabase_shim.sql
+            for f in $(ls supabase/migrations/0*.sql | sort); do
+              echo "== $f =="
+              psql -v ON_ERROR_STOP=1 -f "$f"
+            done
+      - run:
+          name: RLS / Gate 0 / append-only harness
+          command: |
+            set -e
+            for t in supabase/tests/rls_workspaces_test.sql supabase/tests/rls_channels_test.sql supabase/tests/rls_audit_test.sql; do
+              echo "== $t =="
+              psql -v ON_ERROR_STOP=1 -f "$t"
+            done
 
 workflows:
   ci:
     jobs:
       - build-and-check
+      - db-harness
