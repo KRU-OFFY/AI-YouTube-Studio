@@ -35,6 +35,11 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ PR #1 MERGED เข้า main (`914702f`)** — Sprint 1 ครบ (Task 1.1–1.4 + hardening H1/M1/M4 + M2)
+- **Re-audit (หลังปิด M2) = Go** — Critical=0/High=0 · บันทึกที่ `audits/sprint-1-reaudit.md`
+  - ยืนยันด้วย probe: H1/M1/M2/M4 FIXED · anon เขียน/อ่าน audit ไม่ได้
+  - **M-new (Medium, ยังเปิด):** owner INSERT channel `status='approved'` ตรงได้ → Gate 0 bypass ทาง INSERT (คู่กับ M1) → เสนอ migration 0008 ปิด
+  - หมายเหตุ: รอบ re-audit นี้รันในเซสชันผู้พัฒนา (sub-agent อิสระชน session limit) — ยืนยันซ้ำได้เมื่อ limit reset
 - **Sprint 1 hardening — แก้ finding จาก Audit (25 ก.ค. 2026)**
   - **H1 (High) แก้แล้ว:** migration `0006` ตัด FK ของ `audit_logs.workspace_id`/`actor_user_id` → ลบ workspace/user ได้ + audit row คงเป็นประวัติ (ยืนยันด้วย harness)
   - **M1 แก้แล้ว:** trigger `channels_status_guard` กันเปลี่ยน `channels.status` นอก `approve_channel` (บังคับผ่าน RPC + audit)
