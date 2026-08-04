@@ -1,8 +1,9 @@
--- RLS + Gate 0 harness — Task 1.3
--- ต้องรันตามลำดับ: _supabase_shim.sql → 0001 → 0002 → 0003 → 0004 → ไฟล์นี้
+-- RLS + Gate 0 harness — Task 1.3 (+ M1 UPDATE-guard 0006 + M-new INSERT-guard 0008)
+-- ต้องรันตามลำดับ: _supabase_shim.sql → 0001 → 0002 → 0003 → 0004 → 0005 → 0006 → 0007 → 0008 → ไฟล์นี้
 -- พิสูจน์: (ก) Gate 0 draft สร้าง episode ไม่ได้ / approved ได้
 --          (ข) user B เข้าถึง channel/episodes ของ workspace A ไม่ได้ที่ระดับ DB
 --          (ค) channel_id ของ episodes เป็น NOT NULL (ปิดจบหลัง 0004)
+--          (ง) [M-new] INSERT channel status='approved' ตรง → blocked · insert ปกติ → draft · seed_puifun ผ่าน
 
 \set ON_ERROR_STOP on
 
@@ -32,6 +33,31 @@ insert into public.channels (workspace_id, name, slug)
   values (:'ws_a', 'Channel A', 'chan-a');
 select id from public.channels where workspace_id = :'ws_a' and slug='chan-a' \gset
 select set_config('test.ch_a', :'id', false);
+
+-- ── (ง) [M-new] regression: insert ปกติ (ไม่ส่ง status) → ต้องได้ draft ─
+do $$
+declare ch uuid := current_setting('test.ch_a')::uuid; st text;
+begin
+  select status into st from public.channels where id = ch;
+  if st is distinct from 'draft' then
+    raise exception 'FAIL: channel ที่ insert ปกติ ควรเป็น draft (เป็น %)', st;
+  end if;
+end $$;
+
+-- ── (ง) [M-new] INSERT channel status='approved' ตรง → ต้องถูกกัน ──────
+-- (Gate 0 INSERT-bypass: อนุมัติได้ทางเดียวผ่าน approve_channel)
+do $$
+declare ws uuid := current_setting('test.ws_a')::uuid; blocked boolean := false;
+begin
+  begin
+    insert into public.channels (workspace_id, name, slug, status)
+      values (ws, 'Channel Approved ตรง', 'chan-approved-direct', 'approved');
+  exception when raise_exception then blocked := true;
+  end;
+  if not blocked then
+    raise exception 'FAIL: INSERT channel status=approved ตรงได้ (ต้องบังคับ draft + approve_channel)';
+  end if;
+end $$;
 
 -- ── (ก) Gate 0: channel ยัง draft → สร้าง episode ไม่ได้ ──────────────
 do $$
@@ -106,6 +132,30 @@ begin
   if n <> 1 then raise exception 'FAIL: A ควรเห็น channel ตัวเอง (approved)'; end if;
   select count(*) into n from public.episodes where channel_id = ch;
   if n <> 1 then raise exception 'FAIL: A ควรเห็น episode ตัวเอง 1 แถว (เห็น %)', n; end if;
+end $$;
+
+-- ── (ง) [M-new] seed_puifun() ต้องยังสร้าง channel 'approved' ได้ (flag ทำงาน) ─
+-- พิสูจน์ว่า trigger INSERT-guard ไม่ทำ seed พัง (seed set flag ก่อน insert เอง)
+select public.seed_puifun();
+do $$
+declare v_ws uuid; st text; n_fw int; n_ep int;
+begin
+  select id into v_ws from public.workspaces
+   where created_by = '11111111-1111-1111-1111-111111111111'::uuid and name = 'Puifun Studio' limit 1;
+  if v_ws is null then raise exception 'FAIL: seed_puifun ไม่สร้าง workspace Puifun Studio'; end if;
+
+  select status into st from public.channels where workspace_id = v_ws and slug = 'puifun';
+  if st is distinct from 'approved' then
+    raise exception 'FAIL: seed_puifun channel ปุยฝัน ควรเป็น approved (เป็น %)', st;
+  end if;
+
+  select count(*) into n_fw from public.forbidden_words fw
+    join public.channels c on c.id = fw.channel_id where c.workspace_id = v_ws;
+  if n_fw <> 11 then raise exception 'FAIL: seed forbidden_words ควรมี 11 คำ (เห็น %)', n_fw; end if;
+
+  select count(*) into n_ep from public.episodes e
+    join public.channels c on c.id = e.channel_id where c.workspace_id = v_ws;
+  if n_ep <> 10 then raise exception 'FAIL: seed episodes ควรมี 10 ตอน (เห็น %)', n_ep; end if;
 end $$;
 
 reset role;

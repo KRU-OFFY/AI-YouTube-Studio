@@ -35,6 +35,10 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ M-new ปิดแล้ว (migration 0008)** — trigger BEFORE INSERT on channels บังคับ channel เกิดใหม่ = draft (Gate 0 ปิดทั้ง INSERT+UPDATE) · seed_puifun ตั้ง flag ก่อน insert
+  - probe ยืนยัน: INSERT approved→blocked · insert ปกติ→draft · approve_channel→approved · seed_puifun ผ่าน (11 forbidden + 10 ตอน)
+  - re-audit #2 = **Go** (Critical=0/High=0, Medium เหลือ M3 หนี้) · บันทึก `audits/sprint-1-reaudit-2.md`
+  - VERIFY: lint/typecheck/test 43/build + harness shim→0001..0008 ผ่านบน Postgres จริง
 - **✅ เพิ่มกฎการทำงานลง CLAUDE.md** — บทบาท (หัวหน้า/สมอง/ช่าง) · Scope fidelity · ความซื่อตรง commit/audit · Migration immutable
 - **✅ PR #1 MERGED เข้า main (`914702f`)** — Sprint 1 ครบ (Task 1.1–1.4 + hardening H1/M1/M4 + M2)
 - **Re-audit (หลังปิด M2) = Go** — Critical=0/High=0 · บันทึกที่ `audits/sprint-1-reaudit.md`
