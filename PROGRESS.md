@@ -35,6 +35,7 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ เพิ่มกฎการทำงานลง CLAUDE.md** — บทบาท (หัวหน้า/สมอง/ช่าง) · Scope fidelity · ความซื่อตรง commit/audit · Migration immutable
 - **✅ PR #1 MERGED เข้า main (`914702f`)** — Sprint 1 ครบ (Task 1.1–1.4 + hardening H1/M1/M4 + M2)
 - **Re-audit (หลังปิด M2) = Go** — Critical=0/High=0 · บันทึกที่ `audits/sprint-1-reaudit.md`
   - ยืนยันด้วย probe: H1/M1/M2/M4 FIXED · anon เขียน/อ่าน audit ไม่ได้
