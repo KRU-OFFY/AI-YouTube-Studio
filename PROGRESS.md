@@ -35,6 +35,14 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ Asset/Rights UI + FR-009 provenance (migration 0010)**
+  - เปิดใช้ assets/rights_records (เดิม deny-all ตั้งแต่ 0003) ครั้งแรก: เติมคอลัมน์ provenance + RLS policy + 1:1
+  - 0010: enum `asset_role` · assets ADD channel_id NOT NULL/role/title/created_by · rights ADD plan/model/source_url/created_by/exported_at + UNIQUE(asset_id) · RPC `create_asset_with_rights` (atomic 1:1, has_channel_write)
+  - RLS: assets channel-scoped (can_access_channel/has_channel_write) · rights ผูกผ่าน asset→channel
+  - `lib/asset/` (validation+test · actions create/update) · `components/AssetForms.tsx`
+  - หน้า `/channels/[id]/assets` (list filter type/role/episode + pagination + สร้าง asset+rights คู่) · `/assets/[id]` (edit ทั้งคู่) · middleware ครอบ `/assets` · ลิงก์จาก channel
+  - ✅ VERIFY: lint/typecheck/test **63/63**/build + harness `rls_assets_test` (RPC create · UNIQUE · cross-workspace · viewer เขียนไม่ได้) ผ่านบน Postgres 16 (0001..0010) · seed_puifun ผ่าน · CI loop เพิ่ม test
+  - Deferred: character_id (หนี้ L) · file upload/Supabase Storage · publish-time rights enforcement
 - **✅ Episodes UI + FR-010 state machine (Sprint 2 เริ่ม)**
   - migration `0009_episode_transition.sql`: allowed-transition map + trigger BEFORE UPDATE (guard status) + RPC `transition_episode`
     · graph (ตาม handoff สมอง): draft→scripted · scripted→in_production · in_production→qc/scripted · qc→ready/in_production/scripted · ready→published/qc · {any}→archived

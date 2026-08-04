@@ -106,6 +106,10 @@ export default async function ChannelDetailPage({
             Episodes: {episodes ?? 0} ·{" "}
             <Link href={`/channels/${channel.id}/episodes`}>จัดการตอน →</Link>
           </li>
+          <li>
+            Assets & Rights ·{" "}
+            <Link href={`/channels/${channel.id}/assets`}>จัดการ asset →</Link>
+          </li>
           <li>Forbidden words: {fwords ?? 0}</li>
         </ul>
       </section>
