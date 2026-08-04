@@ -69,7 +69,7 @@ jobs:
           name: RLS / Gate 0 / append-only harness
           command: |
             set -e
-            for t in supabase/tests/rls_workspaces_test.sql supabase/tests/rls_channels_test.sql supabase/tests/rls_audit_test.sql; do
+            for t in supabase/tests/rls_workspaces_test.sql supabase/tests/rls_channels_test.sql supabase/tests/rls_audit_test.sql supabase/tests/rls_episodes_test.sql; do
               echo "== $t =="
               psql -v ON_ERROR_STOP=1 -f "$t"
             done

@@ -35,6 +35,14 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ Episodes UI + FR-010 state machine (Sprint 2 เริ่ม)**
+  - migration `0009_episode_transition.sql`: allowed-transition map + trigger BEFORE UPDATE (guard status) + RPC `transition_episode`
+    · graph (ตาม handoff สมอง): draft→scripted · scripted→in_production · in_production→qc/scripted · qc→ready/in_production/scripted · ready→published/qc · {any}→archived
+    · สิทธิ์ = `has_channel_write` (owner+editor) · reject invalid ฝั่ง server · log_audit `episode.transition` · reuse flag `app.allow_status_change`
+  - `lib/episode/` (validation+test mirror allowed-map · actions create/update/transition) · `components/EpisodeForms.tsx`
+  - หน้า `/channels/[id]/episodes` (list filter status/pillar + pagination + สร้าง; ไม่ดึง script/binary — NFR-010) · `/episodes/[id]` (edit + ปุ่มเปลี่ยนสถานะเฉพาะ allowed)
+  - middleware ครอบ `/episodes` · ลิงก์จากหน้า channel
+  - ✅ VERIFY: lint/typecheck/test **53/53**/build + harness `rls_episodes_test` (valid/invalid/guard/non-writer/{any}→archived) ผ่านบน Postgres 16 (shim→0001..0009) · CI db-harness เพิ่ม test เข้า loop
 - **✅ M-new ปิดแล้ว (migration 0008)** — trigger BEFORE INSERT on channels บังคับ channel เกิดใหม่ = draft (Gate 0 ปิดทั้ง INSERT+UPDATE) · seed_puifun ตั้ง flag ก่อน insert
   - probe ยืนยัน: INSERT approved→blocked · insert ปกติ→draft · approve_channel→approved · seed_puifun ผ่าน (11 forbidden + 10 ตอน)
   - re-audit #2 = **Go** (Critical=0/High=0, Medium เหลือ M3 หนี้) · บันทึก `audits/sprint-1-reaudit-2.md`
