@@ -102,7 +102,14 @@ export default async function ChannelDetailPage({
         <ul style={{ paddingLeft: 18 }}>
           <li>Content pillars: {pillars ?? 0}</li>
           <li>Characters: {characters ?? 0}</li>
-          <li>Episodes: {episodes ?? 0}</li>
+          <li>
+            Episodes: {episodes ?? 0} ·{" "}
+            <Link href={`/channels/${channel.id}/episodes`}>จัดการตอน →</Link>
+          </li>
+          <li>
+            Assets & Rights ·{" "}
+            <Link href={`/channels/${channel.id}/assets`}>จัดการ asset →</Link>
+          </li>
           <li>Forbidden words: {fwords ?? 0}</li>
         </ul>
       </section>

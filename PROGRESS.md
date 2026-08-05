@@ -35,6 +35,32 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ Asset/Rights UI + FR-009 provenance (migration 0010)**
+  - เปิดใช้ assets/rights_records (เดิม deny-all ตั้งแต่ 0003) ครั้งแรก: เติมคอลัมน์ provenance + RLS policy + 1:1
+  - 0010: enum `asset_role` · assets ADD channel_id NOT NULL/role/title/created_by · rights ADD plan/model/source_url/created_by/exported_at + UNIQUE(asset_id) · RPC `create_asset_with_rights` (atomic 1:1, has_channel_write)
+  - RLS: assets channel-scoped (can_access_channel/has_channel_write) · rights ผูกผ่าน asset→channel
+  - `lib/asset/` (validation+test · actions create/update) · `components/AssetForms.tsx`
+  - หน้า `/channels/[id]/assets` (list filter type/role/episode + pagination + สร้าง asset+rights คู่) · `/assets/[id]` (edit ทั้งคู่) · middleware ครอบ `/assets` · ลิงก์จาก channel
+  - ✅ VERIFY: lint/typecheck/test **63/63**/build + harness `rls_assets_test` (RPC create · UNIQUE · cross-workspace · viewer เขียนไม่ได้) ผ่านบน Postgres 16 (0001..0010) · seed_puifun ผ่าน · CI loop เพิ่ม test
+  - Deferred: character_id (หนี้ L) · file upload/Supabase Storage · publish-time rights enforcement
+- **✅ Episodes UI + FR-010 state machine (Sprint 2 เริ่ม)**
+  - migration `0009_episode_transition.sql`: allowed-transition map + trigger BEFORE UPDATE (guard status) + RPC `transition_episode`
+    · graph (ตาม handoff สมอง): draft→scripted · scripted→in_production · in_production→qc/scripted · qc→ready/in_production/scripted · ready→published/qc · {any}→archived
+    · สิทธิ์ = `has_channel_write` (owner+editor) · reject invalid ฝั่ง server · log_audit `episode.transition` · reuse flag `app.allow_status_change`
+  - `lib/episode/` (validation+test mirror allowed-map · actions create/update/transition) · `components/EpisodeForms.tsx`
+  - หน้า `/channels/[id]/episodes` (list filter status/pillar + pagination + สร้าง; ไม่ดึง script/binary — NFR-010) · `/episodes/[id]` (edit + ปุ่มเปลี่ยนสถานะเฉพาะ allowed)
+  - middleware ครอบ `/episodes` · ลิงก์จากหน้า channel
+  - ✅ VERIFY: lint/typecheck/test **53/53**/build + harness `rls_episodes_test` (valid/invalid/guard/non-writer/{any}→archived) ผ่านบน Postgres 16 (shim→0001..0009) · CI db-harness เพิ่ม test เข้า loop
+- **✅ M-new ปิดแล้ว (migration 0008)** — trigger BEFORE INSERT on channels บังคับ channel เกิดใหม่ = draft (Gate 0 ปิดทั้ง INSERT+UPDATE) · seed_puifun ตั้ง flag ก่อน insert
+  - probe ยืนยัน: INSERT approved→blocked · insert ปกติ→draft · approve_channel→approved · seed_puifun ผ่าน (11 forbidden + 10 ตอน)
+  - re-audit #2 = **Go** (Critical=0/High=0, Medium เหลือ M3 หนี้) · บันทึก `audits/sprint-1-reaudit-2.md`
+  - VERIFY: lint/typecheck/test 43/build + harness shim→0001..0008 ผ่านบน Postgres จริง
+- **✅ เพิ่มกฎการทำงานลง CLAUDE.md** — บทบาท (หัวหน้า/สมอง/ช่าง) · Scope fidelity · ความซื่อตรง commit/audit · Migration immutable
+- **✅ PR #1 MERGED เข้า main (`914702f`)** — Sprint 1 ครบ (Task 1.1–1.4 + hardening H1/M1/M4 + M2)
+- **Re-audit (หลังปิด M2) = Go** — Critical=0/High=0 · บันทึกที่ `audits/sprint-1-reaudit.md`
+  - ยืนยันด้วย probe: H1/M1/M2/M4 FIXED · anon เขียน/อ่าน audit ไม่ได้
+  - **M-new (Medium, ยังเปิด):** owner INSERT channel `status='approved'` ตรงได้ → Gate 0 bypass ทาง INSERT (คู่กับ M1) → เสนอ migration 0008 ปิด
+  - หมายเหตุ: รอบ re-audit นี้รันในเซสชันผู้พัฒนา (sub-agent อิสระชน session limit) — ยืนยันซ้ำได้เมื่อ limit reset
 - **Sprint 1 hardening — แก้ finding จาก Audit (25 ก.ค. 2026)**
   - **H1 (High) แก้แล้ว:** migration `0006` ตัด FK ของ `audit_logs.workspace_id`/`actor_user_id` → ลบ workspace/user ได้ + audit row คงเป็นประวัติ (ยืนยันด้วย harness)
   - **M1 แก้แล้ว:** trigger `channels_status_guard` กันเปลี่ยน `channels.status` นอก `approve_channel` (บังคับผ่าน RPC + audit)
