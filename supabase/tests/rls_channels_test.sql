@@ -93,6 +93,21 @@ begin
   if n <> 1 then raise exception 'FAIL: หลังอนุมัติควรสร้าง episode ได้ (เห็น % แถว)', n; end if;
 end $$;
 
+-- [Case C · one-way lock] approved → UPDATE status='draft' ตรง (ไม่มี GUC) → ต้องถูกกัน
+-- ล็อกทิศทาง one-way: ไม่มี un-approve path → channels_status_guard (0006) บล็อกทุกทิศ
+-- ถ้าใครเพิ่ม un-approve ทีหลังโดยไม่ผ่าน RPC/review → เทสนี้แดงเตือน
+do $$
+declare ch uuid := current_setting('test.ch_a')::uuid; blocked boolean := false;
+begin
+  begin
+    update public.channels set status = 'draft' where id = ch;
+  exception when raise_exception then blocked := true;
+  end;
+  if not blocked then
+    raise exception 'FAIL: un-approve ตรง (approved→draft) ได้ (ต้องถูก channels_status_guard บล็อก)';
+  end if;
+end $$;
+
 -- ═══ User B: ต้องเข้าถึงของ A ไม่ได้ ═══
 select set_config('request.jwt.claims','{"sub":"22222222-2222-2222-2222-222222222222"}',false);
 do $$
