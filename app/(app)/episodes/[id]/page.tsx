@@ -7,6 +7,10 @@ import {
   type PillarOption,
 } from "@/components/EpisodeForms";
 import { STATUS_LABEL, type EpisodeStatus } from "@/lib/episode/validation";
+import {
+  EpisodeCharacters,
+  type CharacterOption,
+} from "@/components/EpisodeCharacters";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +60,23 @@ export default async function EpisodeDetailPage({
     .order("name");
   const pillars = (pillarsData ?? []) as PillarOption[];
 
+  // ตัวละคร (m2m): ผูกแล้ว vs ตัวเลือกที่เหลือ (channel เดียวกัน)
+  const { data: charData } = await supabase
+    .from("characters")
+    .select("id, name")
+    .eq("channel_id", episode.channel_id)
+    .order("name");
+  const allChars = (charData ?? []) as CharacterOption[];
+  const { data: linkData } = await supabase
+    .from("episode_characters")
+    .select("character_id")
+    .eq("episode_id", episode.id);
+  const linkedIds = new Set(
+    ((linkData ?? []) as { character_id: string }[]).map((r) => r.character_id),
+  );
+  const linkedChars = allChars.filter((c) => linkedIds.has(c.id));
+  const availableChars = allChars.filter((c) => !linkedIds.has(c.id));
+
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
       <p style={{ marginBottom: 24 }}>
@@ -69,6 +90,15 @@ export default async function EpisodeDetailPage({
       <section style={{ marginTop: 24 }}>
         <h2>เปลี่ยนสถานะ</h2>
         <TransitionControls episodeId={episode.id} status={episode.status} />
+      </section>
+
+      <section style={{ marginTop: 32 }}>
+        <h2>ตัวละครในตอน</h2>
+        <EpisodeCharacters
+          episodeId={episode.id}
+          linked={linkedChars}
+          available={availableChars}
+        />
       </section>
 
       <section style={{ marginTop: 32 }}>
