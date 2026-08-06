@@ -101,7 +101,10 @@ export default async function ChannelDetailPage({
         <h2 style={{ marginBottom: 8 }}>ข้อมูลในช่อง</h2>
         <ul style={{ paddingLeft: 18 }}>
           <li>Content pillars: {pillars ?? 0}</li>
-          <li>Characters: {characters ?? 0}</li>
+          <li>
+            Characters: {characters ?? 0} ·{" "}
+            <Link href={`/channels/${channel.id}/characters`}>จัดการตัวละคร →</Link>
+          </li>
           <li>
             Episodes: {episodes ?? 0} ·{" "}
             <Link href={`/channels/${channel.id}/episodes`}>จัดการตอน →</Link>

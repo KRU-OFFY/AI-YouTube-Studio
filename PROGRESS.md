@@ -35,6 +35,14 @@
   - อัปเดต `CLAUDE.md` เพิ่มหัวข้อ Source of Truth
 
 ## กำลังทำ / ค้างอยู่
+- **✅ Characters / Character Bible (migration 0011)** — branch feat/characters (จาก main 2c31325)
+  - ALTER characters เติมฟิลด์ bible (type/role/species/appearance/voice/personality/forbidden/appears_in/anchor_image_url/created_by) · reuse image_prompt(=canonical_prompt) · RLS เดิมครอบ (ไม่แตะ policy)
+  - enum `character_type` (character/brand_motif) · ดาวดวงน้อย = brand_motif · appears_in = advisory text[] (P1/P2/P3, ไม่ FK)
+  - seed_puifun re-create: เติมค่า bible ให้ 4 ตัวตาม docs/05 §5 (count=4, motif ถูก)
+  - `lib/character/` (validation+test · actions create/update) · `components/CharacterForms.tsx`
+  - หน้า `/channels/[id]/characters` (list+filter type+create) · `/characters/[id]` (edit) · middleware ครอบ `/characters` · ลิงก์จาก channel
+  - ✅ VERIFY: lint/typecheck/test **77/77**/build + harness `rls_characters_test` (cross-workspace · viewer เขียนไม่ได้ · enum · seed count=4) ผ่านบน Postgres 16 (0001..0011) · CI loop เพิ่ม test
+  - Deferred: episode_characters (m2m, PR ถัดไป) · appears_in enforcement (ตอน QC) · Storage/upload
 - **✅ Asset/Rights UI + FR-009 provenance (migration 0010)**
   - เปิดใช้ assets/rights_records (เดิม deny-all ตั้งแต่ 0003) ครั้งแรก: เติมคอลัมน์ provenance + RLS policy + 1:1
   - 0010: enum `asset_role` · assets ADD channel_id NOT NULL/role/title/created_by · rights ADD plan/model/source_url/created_by/exported_at + UNIQUE(asset_id) · RPC `create_asset_with_rights` (atomic 1:1, has_channel_write)
