@@ -130,3 +130,63 @@ export async function transitionEpisode(
   revalidatePath(`/episodes/${id}`);
   return { error: null, message: "เปลี่ยนสถานะแล้ว" };
 }
+
+// ── ผูก/ถอดตัวละคร (m2m) — RLS บังคับ same-channel + write ที่ DB ──────
+export async function linkCharacter(
+  _prev: EpisodeState,
+  formData: FormData,
+): Promise<EpisodeState> {
+  const episodeId = String(formData.get("episode_id") ?? "");
+  const characterId = String(formData.get("character_id") ?? "");
+  if (!episodeId) return { error: "ไม่พบตอน" };
+  if (!characterId) return { error: "กรุณาเลือกตัวละคร" };
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("episode_characters")
+    .insert({ episode_id: episodeId, character_id: characterId });
+
+  if (error) {
+    if (/duplicate key|unique|already exists/i.test(error.message))
+      return { error: "ผูกตัวละครนี้ไว้แล้ว" };
+    if (/row-level security|violates/i.test(error.message))
+      return { error: "ผูกไม่ได้ (ต้องเป็นตัวละครในช่องเดียวกัน + สิทธิ์เขียน)" };
+    return { error: error.message };
+  }
+
+  await logAudit(supabase, {
+    action: "episode.link_character",
+    entityType: "episode",
+    entityId: episodeId,
+    metadata: { character_id: characterId },
+  });
+
+  revalidatePath(`/episodes/${episodeId}`);
+  return { error: null, message: "ผูกตัวละครแล้ว" };
+}
+
+export async function unlinkCharacter(formData: FormData): Promise<void> {
+  const episodeId = String(formData.get("episode_id") ?? "");
+  const characterId = String(formData.get("character_id") ?? "");
+  if (!episodeId || !characterId) return;
+
+  const supabase = createSupabaseServerClient();
+  // .select() คืนแถวที่ถูกลบจริง — RLS ที่ไม่มีสิทธิ์คืน 0 แถวโดยไม่ error
+  const { data, error } = await supabase
+    .from("episode_characters")
+    .delete()
+    .eq("episode_id", episodeId)
+    .eq("character_id", characterId)
+    .select("character_id");
+
+  // audit เฉพาะเมื่อถอดจริง (กัน audit noise บน no-op — audit L1)
+  if (!error && data && data.length > 0) {
+    await logAudit(supabase, {
+      action: "episode.unlink_character",
+      entityType: "episode",
+      entityId: episodeId,
+      metadata: { character_id: characterId },
+    });
+  }
+  revalidatePath(`/episodes/${episodeId}`);
+}
