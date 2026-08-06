@@ -171,13 +171,16 @@ export async function unlinkCharacter(formData: FormData): Promise<void> {
   if (!episodeId || !characterId) return;
 
   const supabase = createSupabaseServerClient();
-  const { error } = await supabase
+  // .select() คืนแถวที่ถูกลบจริง — RLS ที่ไม่มีสิทธิ์คืน 0 แถวโดยไม่ error
+  const { data, error } = await supabase
     .from("episode_characters")
     .delete()
     .eq("episode_id", episodeId)
-    .eq("character_id", characterId);
+    .eq("character_id", characterId)
+    .select("character_id");
 
-  if (!error) {
+  // audit เฉพาะเมื่อถอดจริง (กัน audit noise บน no-op — audit L1)
+  if (!error && data && data.length > 0) {
     await logAudit(supabase, {
       action: "episode.unlink_character",
       entityType: "episode",
