@@ -1,0 +1,21 @@
+package.json
+  s_3e35054c786a38::t_f93807e5194edc 16,25
+package-lock.json
+  s_3e35054c786a38::t_c58084f769b24b 13,22,627-629,633-635,643-645,659-661,675-677,681-683,694-696,700-702,713-715,719-721,732-734,738-740,751-753,767-769,783-785,3141-3143,3147,3851-3853,4862-4864,4867,4882-4890
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "9dfa4b42fb604f05fe8f77eecf887e5b866fccfe",
+  "prompts": {},
+  "sessions": {
+    "s_3e35054c786a38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea75-7614-7503-89e5-30bb8d85a1c0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "KRU-TOFFY <248393795+KRU-OFFY@users.noreply.github.com>"
+    }
+  }
+}
