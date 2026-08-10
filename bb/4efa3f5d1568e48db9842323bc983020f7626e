@@ -1,0 +1,20 @@
+lib/supabase/middleware.ts
+  s_3e35054c786a38::t_a94bf9d9465f40 17-31,34-35
+  s_3e35054c786a38::t_da5654d0439c96 14-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "bb4efa3f5d1568e48db9842323bc983020f7626e",
+  "prompts": {},
+  "sessions": {
+    "s_3e35054c786a38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea75-7614-7503-89e5-30bb8d85a1c0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "KRU-TOFFY <248393795+KRU-OFFY@users.noreply.github.com>"
+    }
+  }
+}
