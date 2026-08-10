@@ -4,9 +4,6 @@
   "name": "ai-youtube-studio",
   "compatibility_date": "2026-08-10",
   "compatibility_flags": ["nodejs_compat"],
-  "build": {
-    "command": "npx opennextjs-cloudflare build"
-  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
