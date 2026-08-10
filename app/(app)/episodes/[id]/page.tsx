@@ -27,10 +27,9 @@ type Episode = {
 export default async function EpisodeDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -39,7 +38,7 @@ export default async function EpisodeDetailPage({
   const { data: epData } = await supabase
     .from("episodes")
     .select("id, channel_id, title, status, script, pillar_id, seed_data")
-    .eq("id", id)
+    .eq("id", params.id)
     .maybeSingle();
   if (!epData) notFound();
   const episode = epData as Episode;

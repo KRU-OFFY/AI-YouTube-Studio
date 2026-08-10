@@ -30,12 +30,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.dev.vars
-
-# OpenNext Cloudflare build output
-.open-next/
-.wrangler/
-cloudflare-env.d.ts
 
 # vercel
 .vercel

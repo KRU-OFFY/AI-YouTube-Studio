@@ -14,7 +14,7 @@ type Workspace = {
 };
 
 export default async function WorkspacesPage() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

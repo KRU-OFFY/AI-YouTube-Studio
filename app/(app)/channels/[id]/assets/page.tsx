@@ -29,11 +29,10 @@ export default async function AssetsListPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ type?: string; role?: string; episode?: string; page?: string }>;
+  params: { id: string };
+  searchParams: { type?: string; role?: string; episode?: string; page?: string };
 }) {
-  const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -42,7 +41,7 @@ export default async function AssetsListPage({
   const { data: ch } = await supabase
     .from("channels")
     .select("id, name, status")
-    .eq("id", id)
+    .eq("id", params.id)
     .maybeSingle();
   if (!ch) notFound();
   const channel = ch as { id: string; name: string; status: string };
@@ -57,11 +56,11 @@ export default async function AssetsListPage({
   const episodeTitle = new Map(episodes.map((e) => [e.id, e.title]));
 
   const typeFilter =
-    resolvedSearchParams.type && isAssetType(resolvedSearchParams.type) ? resolvedSearchParams.type : null;
+    searchParams.type && isAssetType(searchParams.type) ? searchParams.type : null;
   const roleFilter =
-    resolvedSearchParams.role && isAssetRole(resolvedSearchParams.role) ? resolvedSearchParams.role : null;
-  const episodeFilter = resolvedSearchParams.episode?.trim() || null;
-  const page = Math.max(1, Number(resolvedSearchParams.page ?? "1") || 1);
+    searchParams.role && isAssetRole(searchParams.role) ? searchParams.role : null;
+  const episodeFilter = searchParams.episode?.trim() || null;
+  const page = Math.max(1, Number(searchParams.page ?? "1") || 1);
   const from = (page - 1) * PAGE_SIZE;
 
   let query = supabase

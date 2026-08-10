@@ -24,11 +24,10 @@ export default async function CharactersListPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ type?: string }>;
+  params: { id: string };
+  searchParams: { type?: string };
 }) {
-  const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -37,13 +36,13 @@ export default async function CharactersListPage({
   const { data: ch } = await supabase
     .from("channels")
     .select("id, name")
-    .eq("id", id)
+    .eq("id", params.id)
     .maybeSingle();
   if (!ch) notFound();
   const channel = ch as { id: string; name: string };
 
   const typeFilter =
-    resolvedSearchParams.type && isCharacterType(resolvedSearchParams.type) ? resolvedSearchParams.type : null;
+    searchParams.type && isCharacterType(searchParams.type) ? searchParams.type : null;
 
   let query = supabase
     .from("characters")
