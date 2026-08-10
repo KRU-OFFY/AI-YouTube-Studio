@@ -48,7 +48,7 @@ export async function createAssetWithRights(
   const rightsErr = validateRights({ toolUsed, exportedAt });
   if (rightsErr) return { error: rightsErr };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("create_asset_with_rights", {
     p_channel_id: channelId,
     p_type: type,
@@ -109,7 +109,7 @@ export async function updateAssetWithRights(
   const rightsErr = validateRights({ toolUsed, exportedAt });
   if (rightsErr) return { error: rightsErr };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("assets")
     .update({

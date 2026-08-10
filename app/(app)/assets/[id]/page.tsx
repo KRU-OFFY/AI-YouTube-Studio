@@ -39,9 +39,10 @@ function toDateInput(ts: string | null): string {
 export default async function AssetDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createSupabaseServerClient();
+  const { id } = await params;
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -50,7 +51,7 @@ export default async function AssetDetailPage({
   const { data: aData } = await supabase
     .from("assets")
     .select("id, channel_id, episode_id, type, role, title, storage_path, source_tool")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
   if (!aData) notFound();
   const asset = aData as Asset;

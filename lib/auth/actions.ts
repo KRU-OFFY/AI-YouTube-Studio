@@ -44,7 +44,7 @@ export async function login(
   const validationError = validateEmail(email) ?? validatePassword(password);
   if (validationError) return { error: validationError };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   // ไม่แยกว่า "ไม่พบอีเมล" หรือ "รหัสผ่านผิด" — ตอบรวมกันเสมอ
@@ -69,7 +69,7 @@ export async function signup(
   const validationError = validateEmail(email) ?? validatePassword(password);
   if (validationError) return { error: validationError };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error) return { error: error.message };
@@ -88,7 +88,7 @@ export async function signup(
 
 // ออกจากระบบ — log ก่อน signOut (ตอน session ยังอยู่ actor = auth.uid())
 export async function logout(): Promise<void> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await logAudit(supabase, { action: "auth.logout", result: "success" });
   await supabase.auth.signOut();
   redirect("/login");

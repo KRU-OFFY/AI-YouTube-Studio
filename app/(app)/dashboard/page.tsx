@@ -15,7 +15,7 @@ async function checkSupabase(): Promise<ConnectionStatus> {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return { state: "missing-env" };
   try {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const { error } = await supabase.from("pillars").select("id").limit(1);
     if (error && !/relation .* does not exist/i.test(error.message)) {
       return { state: "error", message: error.message };
@@ -27,7 +27,7 @@ async function checkSupabase(): Promise<ConnectionStatus> {
 }
 
 export default async function DashboardPage() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

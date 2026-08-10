@@ -26,7 +26,7 @@ export async function createChannel(
   const slugError = validateSlug(slug);
   if (slugError) return { error: slugError };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("channels")
     .insert({ workspace_id: workspaceId, name: name.trim(), slug: slug.trim() })
@@ -55,7 +55,7 @@ export async function createChannel(
 export async function approveChannel(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase.rpc("approve_channel", { p_id: id });
   const ch = (Array.isArray(data) ? data[0] : data) as
     | { id?: string; workspace_id?: string }
@@ -73,7 +73,7 @@ export async function approveChannel(formData: FormData): Promise<void> {
 
 // seed ข้อมูลปุยฝันครั้งเดียว (idempotent) — สร้าง workspace/channel/content ให้ผู้เรียก
 export async function seedPuifun(): Promise<void> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase.rpc("seed_puifun");
   const ch = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
   if (ch?.id) redirect(`/channels/${ch.id}`);

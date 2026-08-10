@@ -33,7 +33,7 @@ export async function createEpisode(
   const titleError = validateEpisodeTitle(title);
   if (titleError) return { error: titleError };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("episodes")
     .insert({ channel_id: channelId, title: title.trim(), pillar_id: pillarId })
@@ -78,7 +78,7 @@ export async function updateEpisode(
   const titleError = validateEpisodeTitle(title);
   if (titleError) return { error: titleError };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("episodes")
     .update({ title: title.trim(), script: script, pillar_id: pillarId })
@@ -113,7 +113,7 @@ export async function transitionEpisode(
   if (!id) return { error: "ไม่พบตอน" };
   if (!isEpisodeStatus(to)) return { error: "สถานะปลายทางไม่ถูกต้อง" };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("transition_episode", {
     p_id: id,
     p_to: to as EpisodeStatus,
@@ -141,7 +141,7 @@ export async function linkCharacter(
   if (!episodeId) return { error: "ไม่พบตอน" };
   if (!characterId) return { error: "กรุณาเลือกตัวละคร" };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("episode_characters")
     .insert({ episode_id: episodeId, character_id: characterId });
@@ -170,7 +170,7 @@ export async function unlinkCharacter(formData: FormData): Promise<void> {
   const characterId = String(formData.get("character_id") ?? "");
   if (!episodeId || !characterId) return;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   // .select() คืนแถวที่ถูกลบจริง — RLS ที่ไม่มีสิทธิ์คืน 0 แถวโดยไม่ error
   const { data, error } = await supabase
     .from("episode_characters")

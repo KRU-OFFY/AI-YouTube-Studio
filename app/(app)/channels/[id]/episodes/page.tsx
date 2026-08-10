@@ -25,10 +25,11 @@ export default async function EpisodesListPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { status?: string; pillar?: string; page?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ status?: string; pillar?: string; page?: string }>;
 }) {
-  const supabase = createSupabaseServerClient();
+  const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -37,7 +38,7 @@ export default async function EpisodesListPage({
   const { data: ch } = await supabase
     .from("channels")
     .select("id, workspace_id, name, slug, status")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
   if (!ch) notFound();
   const channel = ch as {
@@ -59,11 +60,11 @@ export default async function EpisodesListPage({
 
   // ── filters + pagination ──
   const statusFilter =
-    searchParams.status && isEpisodeStatus(searchParams.status)
-      ? searchParams.status
+    resolvedSearchParams.status && isEpisodeStatus(resolvedSearchParams.status)
+      ? resolvedSearchParams.status
       : null;
-  const pillarFilter = searchParams.pillar?.trim() || null;
-  const page = Math.max(1, Number(searchParams.page ?? "1") || 1);
+  const pillarFilter = resolvedSearchParams.pillar?.trim() || null;
+  const page = Math.max(1, Number(resolvedSearchParams.page ?? "1") || 1);
   const from = (page - 1) * PAGE_SIZE;
 
   // NFR-010: ไม่ดึง script / seed_data (binary/หนัก) ในหน้า list

@@ -20,9 +20,10 @@ type Member = { user_id: string; role: string };
 export default async function WorkspaceDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createSupabaseServerClient();
+  const { id } = await params;
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -32,7 +33,7 @@ export default async function WorkspaceDetailPage({
   const { data: ws } = await supabase
     .from("workspaces")
     .select("id, name, default_language, timezone, currency, created_at")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
 
   if (!ws) notFound();

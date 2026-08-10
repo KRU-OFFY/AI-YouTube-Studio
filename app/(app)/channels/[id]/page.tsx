@@ -18,9 +18,10 @@ type Channel = {
 export default async function ChannelDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createSupabaseServerClient();
+  const { id } = await params;
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -30,7 +31,7 @@ export default async function ChannelDetailPage({
   const { data: ch } = await supabase
     .from("channels")
     .select("id, workspace_id, name, slug, handle, made_for_kids_default, status")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
   if (!ch) notFound();
   const channel = ch as Channel;

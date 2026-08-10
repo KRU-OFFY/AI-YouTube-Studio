@@ -61,7 +61,7 @@ export async function createCharacter(
   const err = validateCommon(fd);
   if (err) return { error: err };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("characters")
     .insert({
@@ -109,7 +109,7 @@ export async function updateCharacter(
   const err = validateCommon(fd);
   if (err) return { error: err };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("characters")
     .update({
