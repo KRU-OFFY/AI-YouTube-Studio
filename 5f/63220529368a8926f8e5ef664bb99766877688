@@ -1,0 +1,22 @@
+package.json
+  s_3e35054c786a38::t_d9a1ddfcf54ba9 7-8
+open-next.config.ts
+  s_3e35054c786a38::t_d9a1ddfcf54ba9 5
+  s_3e35054c786a38::t_003f659f034194 3-4,6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5f63220529368a8926f8e5ef664bb99766877688",
+  "prompts": {},
+  "sessions": {
+    "s_3e35054c786a38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea75-7614-7503-89e5-30bb8d85a1c0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "KRU-TOFFY <248393795+KRU-OFFY@users.noreply.github.com>"
+    }
+  }
+}
