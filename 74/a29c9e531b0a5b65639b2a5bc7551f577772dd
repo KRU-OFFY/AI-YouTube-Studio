@@ -1,0 +1,65 @@
+lib/workspace/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 33,68
+app/(app)/characters/[id]/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 16,18,30
+  s_3e35054c786a38::t_fc4f50f8083661 19
+app/(app)/channels/[id]/episodes/page.tsx
+  s_3e35054c786a38::t_fc4f50f8083661 32
+  s_3e35054c786a38::t_4d543b95653d8e 28-29,31,41,63-64,66-67
+lib/channel/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 29,58,76
+app/(app)/channels/[id]/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 21,23,34
+  s_3e35054c786a38::t_fc4f50f8083661 24
+app/(app)/workspaces/[id]/page.tsx
+  s_3e35054c786a38::t_fc4f50f8083661 26
+  s_3e35054c786a38::t_4d543b95653d8e 23,25,36
+lib/episode/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 36,81,116,144,173
+app/(app)/channels/[id]/assets/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 32-33,35,45,60,62-64
+  s_3e35054c786a38::t_fc4f50f8083661 36
+lib/supabase/server.ts
+  s_3e35054c786a38::t_fc4f50f8083661 7-8
+lib/asset/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 51,112
+lib/auth/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 47,72,91
+app/(app)/assets/[id]/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 42,44,54
+  s_3e35054c786a38::t_fc4f50f8083661 45
+package.json
+  s_3e35054c786a38::t_cb9ffe043ed100 16,25
+lib/character/actions.ts
+  s_3e35054c786a38::t_fc4f50f8083661 64,112
+app/(app)/workspaces/page.tsx
+  s_3e35054c786a38::t_fc4f50f8083661 17
+app/(app)/episodes/[id]/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 30,32,42
+  s_3e35054c786a38::t_fc4f50f8083661 33
+app/(app)/dashboard/page.tsx
+  s_3e35054c786a38::t_fc4f50f8083661 18,30
+app/(app)/channels/[id]/characters/page.tsx
+  s_3e35054c786a38::t_4d543b95653d8e 27-28,30,40,46
+  s_3e35054c786a38::t_fc4f50f8083661 31
+next-env.d.ts
+  s_3e35054c786a38::t_1789e99bb86a4d 3,6
+package-lock.json
+  s_3e35054c786a38::t_7cd3c65a823789 13,22,552-575,577-595,597-603,606-804,806,809-812,815-998,1000,1003,1006-1063,1093-1095,1099-1101,1105,1109-1111,1125-1127,1141-1143,1160-1162,1179-1181,1198-1200,1217-1219,1233-1235,1758-1760,1763,2874-2879,2881,2884,3217-3226,3578-3580,3584-3585,3590-3593,3596,3821-3823,3830,3977-4006,4062-4074,4114-4117,4119,4121,4124,4127,4762-4771,5161-5197,5270-5272,5275-5276,5279,5285,5288-5296,5300-5303,5313-5315,6036,6094-6138,6440-6442,6451,6556-6568
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "74a29c9e531b0a5b65639b2a5bc7551f577772dd",
+  "prompts": {},
+  "sessions": {
+    "s_3e35054c786a38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea75-7614-7503-89e5-30bb8d85a1c0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "KRU-TOFFY <248393795+KRU-OFFY@users.noreply.github.com>"
+    }
+  }
+}
