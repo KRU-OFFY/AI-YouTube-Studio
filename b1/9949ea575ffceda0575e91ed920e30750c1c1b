@@ -1,0 +1,21 @@
+wrangler.jsonc
+  s_3e35054c786a38::t_dea54bd6d0a4e9 7-9
+package.json
+  s_3e35054c786a38::t_581bda1212777c 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "b19949ea575ffceda0575e91ed920e30750c1c1b",
+  "prompts": {},
+  "sessions": {
+    "s_3e35054c786a38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea75-7614-7503-89e5-30bb8d85a1c0",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "KRU-TOFFY <248393795+KRU-OFFY@users.noreply.github.com>"
+    }
+  }
+}
