@@ -30,7 +30,7 @@ export async function createWorkspace(
   const nameError = validateWorkspaceName(name);
   if (nameError) return { error: nameError };
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase.rpc("create_workspace", {
     p_name: name.trim(),
     p_timezone: normalizeTimezone(timezone),
@@ -65,7 +65,7 @@ export async function renameWorkspace(
   const nameError = validateWorkspaceName(name);
   if (nameError) return { error: nameError };
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("workspaces")
     .update({ name: name.trim() })

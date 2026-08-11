@@ -13,10 +13,9 @@ type Character = CharacterDefaults & { id: string; channel_id: string };
 export default async function CharacterDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -27,7 +26,7 @@ export default async function CharacterDetailPage({
     .select(
       "id, channel_id, name, slug, type, role, species, description, image_prompt, anchor_image_url, appearance, voice, personality, forbidden, appears_in",
     )
-    .eq("id", id)
+    .eq("id", params.id)
     .maybeSingle();
   if (!data) notFound();
   const c = data as Character;

@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // ใช้ใน Server Component / Server Action / Route Handler
-export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
+export function createSupabaseServerClient() {
+  const cookieStore = cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
