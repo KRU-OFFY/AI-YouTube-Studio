@@ -3,7 +3,7 @@
 > **อ่านไฟล์นี้ก่อนเริ่มทำงานต่อทุกครั้ง** แล้วดำเนินการจากส่วน "ขั้นตอนถัดไป" ด้านล่าง
 > เมื่อคืบหน้า อย่าลืมอัปเดตวันที่ และย้ายงานที่เสร็จไปไว้ในส่วน "ทำเสร็จแล้ว"
 
-**อัปเดตล่าสุด:** 24 ก.ค. 2026 (รอบ 3 — วางชุดเอกสารอ้างอิงครบ + รับ ADR Sprint 1 + CI เขียว)
+**อัปเดตล่าสุด:** 20 ส.ค. 2026 (Sprint 2 UI merged เข้า main + revert Cloudflare + ปิด TG3 บน Supabase จริง)
 
 ---
 
@@ -12,6 +12,15 @@
 - ระบบผลิต: **TOFFY AI YouTube Studio** (Next.js + Supabase + Vercel)
 - ขอบเขต MVP: 7 เฟส จบที่ Export Production Package
 - ตัวชี้วัดหลัก: rewatch rate และ asset reuse ratio (สำคัญกว่า RPM)
+
+## ทำเสร็จล่าสุด (ส.ค. 2026)
+- **✅ Sprint 2 UI merged เข้า main** — Episodes UI (FR-010), Asset/Rights UI (FR-009), Characters/Character Bible, episode_characters (m2m) รวมเข้า main แล้ว (PR #3/#4/#5) พร้อม migration 0008–0012
+- **✅ Revert Cloudflare → main (PR #7 merged, `09e9b51`)** — เคยมี session อื่น push งานย้ายไป Cloudflare Workers (Next 15 + OpenNext) **ตรงเข้า main โดยไม่ผ่าน PR** (main ยัง `protected=false`) → กู้คืนกลับ target เดิม (Vercel/Next.js) ที่ `next@14.2.15`; สภาพ Cloudflare สำรองไว้ที่ branch `backup/cloudflare-migration`
+  - Verify: lint/typecheck/test **77**/build ผ่าน · Vercel Preview Ready
+- **✅ ปิด TG3 (E2E บน Supabase จริง `sxevdedipklivvgxosap`)** — deploy schema 0001–0012 + `seed_puifun()` (owner จริง) + anchor rights น้องปุย/มุ่ย
+  - ยืนยันจาก DB จริง: `assets`=2, `rights_records`=2 (1:1 ตาม constraint), `created_by`=UID เจ้าของ (24614d73…)
+  - สคริปต์: `supabase/scripts/deploy-schema-0001-0012.sql` + `anchor-rights-puifun.sql` (idempotent · verify ครบสายบน throwaway Postgres 16)
+- **⏳ งานเก็บกวาดฝั่งเจ้าของ (ไม่บล็อกงานโค้ด):** ลบ Cloudflare Worker `ai-youtube-studio` + ตัด GitHub integration · ตั้ง branch protection บน `main` (กัน push ตรง) · ยืนยัน CircleCI ต่อ repo · rotate service_role key ที่เคยหลุดในแชต
 
 ## ทำเสร็จแล้ว (Week 0)
 - เอกสารโลกแบรนด์ (brand world)
@@ -129,17 +138,12 @@
 - ✅ seed ผูก channel-scoped ผ่าน RPC `seed_puifun()` (workspace "Puifun Studio" + channel "ปุยฝัน")
 - ⏳ ยังเหลือ: ออกแบบ RLS policy ของ `assets` / `rights_records` (ตอนนี้ล็อก deny-all ไว้ก่อน)
 
-## ขั้นตอนถัดไป — Sprint 1 (ทำตามลำดับ ห้ามข้าม)
-1. ~~Task 1.1 — Auth~~ ✅ เสร็จ
-2. ~~Task 1.2 — workspaces + workspace_members + RLS~~ ✅ เสร็จ (FR-001 ตาม docs/02; Playbook พิมพ์เลข FR คลาด)
-3. ~~Task 1.3 — channels + Gate 0 + RLS + ผูก seed channel-scoped~~ ✅ เสร็จ
-4. ~~Task 1.4 — audit log (FR-013)~~ ✅ เสร็จ
-5. **Auditor ตรวจจบ Sprint 1** (เปิด session ใหม่ · เกณฑ์: Critical=0, High=0) ← ถัดไป
-6. จากนั้น Episodes UI (เฟสถัดไป)
-4. **ปรับ seed** — workspace/channel เป็น seed row → pillars/characters/episodes ผูก FK
-5. **Task 1.4 — audit log (FR-013)**
-6. **Auditor** ตรวจจบ Sprint 1 (เปิด session ใหม่, เกณฑ์: Critical=0, High=0)
-7. **จากนั้น** ค่อยทำ Episodes UI
+## ขั้นตอนถัดไป
+> Sprint 1 (Task 1.1–1.4) + Sprint 2 UI ✅ เสร็จและ merged เข้า main แล้ว · TG3 ปิดบน Supabase จริงแล้ว
+1. **Episodes UI — เติม gap + polish** (โครงหลัก list/create/edit/transition/characters + RLS + Gate 0 + audit อยู่บน main แล้ว)
+   - gap ที่เจอ: ยังไม่มี action/ปุ่ม **"ลบตอน"** ใน UI (RLS อนุญาต owner+editor แต่ยังไม่ต่อ UI) · ยังไม่มี UI component library (ทำ ad-hoc inline style ต่อหน้า)
+   - รอสมองเคาะ scope ก่อนทำ Plan (Inspect ฝั่งโค้ดส่งให้แล้ว)
+2. **งานเก็บกวาดฝั่งเจ้าของ** (คู่ขนาน ไม่บล็อกงานโค้ด): ลบ Cloudflare Worker · branch protection main · CircleCI connect · rotate service_role key
 
 ## งานฝั่งเจ้าของ (ผมทำแทนไม่ได้ — ทำคู่ขนาน)
 - **จองแฮนเดิล YouTube `@puifun`** — ด่วนสุด
