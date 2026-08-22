@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   EditEpisodeForm,
   TransitionControls,
+  DeleteEpisodeControl,
   type PillarOption,
 } from "@/components/EpisodeForms";
 import { STATUS_LABEL, type EpisodeStatus } from "@/lib/episode/validation";
@@ -131,6 +132,18 @@ export default async function EpisodeDetailPage({
             </pre>
           </section>
         )}
+
+      <section style={{ marginTop: 32, borderTop: "1px solid var(--border)", paddingTop: 24 }}>
+        <h2 style={{ color: "var(--warn)" }}>ลบตอน</h2>
+        <p style={{ color: "var(--muted)", marginTop: 0 }}>
+          ลบตอนนี้ถาวร (เฉพาะ owner/editor) — ลิงก์ตัวละคร (m2m) จะถูกลบตามไปด้วย
+        </p>
+        <DeleteEpisodeControl
+          episodeId={episode.id}
+          channelId={episode.channel_id}
+          title={episode.title}
+        />
+      </section>
     </main>
   );
 }

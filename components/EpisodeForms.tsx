@@ -5,6 +5,7 @@ import {
   createEpisode,
   updateEpisode,
   transitionEpisode,
+  deleteEpisode,
   type EpisodeState,
 } from "@/lib/episode/actions";
 import {
@@ -124,6 +125,50 @@ export function TransitionControls({
           </form>
         ))}
       </div>
+      {state.error && <p role="alert" className="auth-error" style={{ marginTop: 8 }}>{state.error}</p>}
+    </div>
+  );
+}
+
+function DeleteSubmit() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="auth-submit"
+      style={{ width: "auto", background: "var(--warn)", borderColor: "var(--warn)" }}
+    >
+      {pending ? "กำลังลบ…" : "ลบตอนนี้"}
+    </button>
+  );
+}
+
+// ลบตอน (owner+editor) — ถามยืนยันก่อน แล้วเรียก server action ลบ + เด้งกลับรายการตอน
+export function DeleteEpisodeControl({
+  episodeId,
+  channelId,
+  title,
+}: {
+  episodeId: string;
+  channelId: string;
+  title: string;
+}) {
+  const [state, formAction] = useFormState(deleteEpisode, initialState);
+  return (
+    <div>
+      <form
+        action={formAction}
+        onSubmit={(e) => {
+          if (!window.confirm(`ลบตอน “${title}” ถาวร? การลบนี้ย้อนกลับไม่ได้`)) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <input type="hidden" name="id" value={episodeId} />
+        <input type="hidden" name="channel_id" value={channelId} />
+        <DeleteSubmit />
+      </form>
       {state.error && <p role="alert" className="auth-error" style={{ marginTop: 8 }}>{state.error}</p>}
     </div>
   );
