@@ -190,3 +190,34 @@ export async function unlinkCharacter(formData: FormData): Promise<void> {
   }
   revalidatePath(`/episodes/${episodeId}`);
 }
+
+// ลบ episode — RLS: owner+editor (episodes_write FOR ALL) · ลบแล้วเด้งกลับรายการตอน
+export async function deleteEpisode(
+  _prev: EpisodeState,
+  formData: FormData,
+): Promise<EpisodeState> {
+  const id = String(formData.get("id") ?? "");
+  const channelId = String(formData.get("channel_id") ?? "");
+  if (!id) return { error: "ไม่พบตอน" };
+
+  const supabase = createSupabaseServerClient();
+  // .select() คืนแถวที่ถูกลบจริง — RLS ที่ไม่มีสิทธิ์คืน 0 แถวโดยไม่ error
+  const { data, error } = await supabase
+    .from("episodes")
+    .delete()
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!data || data.length === 0)
+    return { error: "คุณไม่มีสิทธิ์ลบตอนนี้ (ต้องเป็น owner/editor)" };
+
+  await logAudit(supabase, {
+    action: "episode.delete",
+    entityType: "episode",
+    entityId: id,
+  });
+
+  if (channelId) revalidatePath(`/channels/${channelId}/episodes`);
+  redirect(channelId ? `/channels/${channelId}/episodes` : "/dashboard");
+}
