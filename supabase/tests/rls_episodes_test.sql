@@ -5,6 +5,8 @@
 --          (ค) UPDATE episodes.status ตรง → blocked (trigger guard)
 --          (ง) non-writer (ไม่ใช่ member) เรียก transition → raise (has_channel_write)
 --          (จ) {any}→archived ผ่าน · publish จาก non-ready → blocked
+--          (ฉ) DELETE episode: owner/editor → สำเร็จ (1 แถว) + cascade ลบ episode_characters
+--          (ช) DELETE episode: viewer → 0 แถว (RLS บล็อก ไม่ error) + ตอนยังอยู่
 
 \set ON_ERROR_STOP on
 
@@ -106,6 +108,93 @@ begin
   exception when raise_exception then denied := true;
   end;
   if not denied then raise exception 'FAIL: non-writer เปลี่ยนสถานะ episode ได้'; end if;
+end $$;
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (ฉ/ช) DELETE episode — สิทธิ์ผ่าน RLS ล้วน (owner/editor ลบได้ · viewer 0 แถว) + cascade
+-- ═══════════════════════════════════════════════════════════════════════
+-- เพิ่มผู้ใช้: editor + viewer (insert auth.users ทำในฐานะ postgres)
+reset role;
+insert into auth.users (id) values
+  ('33333333-3333-3333-3333-333333333333'),   -- editor
+  ('44444444-4444-4444-4444-444444444444')    -- viewer
+on conflict do nothing;
+
+-- owner A เพิ่มสมาชิก editor/viewer + สร้าง character + 3 ตอนสำหรับทดสอบลบ
+set role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-1111-1111-111111111111"}',false);
+insert into public.workspace_members (workspace_id, user_id, role) values
+  (:'ws_ep', '33333333-3333-3333-3333-333333333333', 'editor'),
+  (:'ws_ep', '44444444-4444-4444-4444-444444444444', 'viewer');
+
+insert into public.characters (channel_id, name, slug)
+  values (current_setting('test.ch_ep')::uuid, 'CH-DEL', 'ch-del');
+select id from public.characters where channel_id=current_setting('test.ch_ep')::uuid and slug='ch-del' \gset
+select set_config('test.char_del', :'id', false);
+
+insert into public.episodes (channel_id, title) values
+  (current_setting('test.ch_ep')::uuid, 'EP-DEL-1'),
+  (current_setting('test.ch_ep')::uuid, 'EP-DEL-2'),
+  (current_setting('test.ch_ep')::uuid, 'EP-DEL-3');
+select id from public.episodes where channel_id=current_setting('test.ch_ep')::uuid and title='EP-DEL-1' \gset
+select set_config('test.epd1', :'id', false);
+select id from public.episodes where channel_id=current_setting('test.ch_ep')::uuid and title='EP-DEL-2' \gset
+select set_config('test.epd2', :'id', false);
+select id from public.episodes where channel_id=current_setting('test.ch_ep')::uuid and title='EP-DEL-3' \gset
+select set_config('test.epd3', :'id', false);
+
+-- ผูก character เข้ากับ EP-DEL-1 (ทดสอบ cascade ON DELETE)
+insert into public.episode_characters (episode_id, character_id)
+  values (current_setting('test.epd1')::uuid, current_setting('test.char_del')::uuid);
+
+-- ── (ฉ-1) owner ลบ EP-DEL-1 → 1 แถว ──────────────────────────────────
+do $$
+declare n int;
+begin
+  delete from public.episodes where id = current_setting('test.epd1')::uuid;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'FAIL: owner ลบ episode ไม่สำเร็จ (row_count=%)', n; end if;
+end $$;
+
+-- ตรวจ cascade + การลบจริง ในฐานะ postgres (ข้าม RLS — พิสูจน์ลบจริง ไม่ใช่ RLS ซ่อน)
+reset role;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.episodes where id = current_setting('test.epd1')::uuid;
+  if n <> 0 then raise exception 'FAIL: episode ยังอยู่หลัง owner ลบ (%)', n; end if;
+  select count(*) into n from public.episode_characters where episode_id = current_setting('test.epd1')::uuid;
+  if n <> 0 then raise exception 'FAIL: cascade ไม่ลบ episode_characters (เหลือ %)', n; end if;
+end $$;
+
+-- ── (ฉ-2) editor ลบ EP-DEL-2 → 1 แถว ─────────────────────────────────
+set role authenticated;
+select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333"}',false);
+do $$
+declare n int;
+begin
+  delete from public.episodes where id = current_setting('test.epd2')::uuid;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'FAIL: editor ลบ episode ไม่สำเร็จ (row_count=%)', n; end if;
+end $$;
+
+-- ── (ช) viewer ลบ EP-DEL-3 → 0 แถว (RLS บล็อก ไม่ error) ──────────────
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-4444-444444444444"}',false);
+do $$
+declare n int;
+begin
+  delete from public.episodes where id = current_setting('test.epd3')::uuid;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: viewer ลบ episode ได้ (row_count=%) — RLS ต้องบล็อก', n; end if;
+end $$;
+
+-- ยืนยัน EP-DEL-3 ยังอยู่จริง (ฐานะ postgres)
+reset role;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.episodes where id = current_setting('test.epd3')::uuid;
+  if n <> 1 then raise exception 'FAIL: EP-DEL-3 หาย ทั้งที่ viewer ลบไม่ได้ (%)', n; end if;
 end $$;
 
 reset role;
